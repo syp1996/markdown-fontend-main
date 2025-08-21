@@ -1,17 +1,6 @@
 <template>
   <div id="app">
-    <el-container>
-      <el-header>
-        <h1>Markdown前端项目</h1>
-        <el-menu mode="horizontal" router>
-          <el-menu-item index="/">首页</el-menu-item>
-          <el-menu-item v-if="isLoggedIn" index="/dashboard">控制台</el-menu-item>
-        </el-menu>
-      </el-header>
-      <el-main>
-        <router-view/>
-      </el-main>
-    </el-container>
+    <router-view/>
   </div>
 </template>
 
