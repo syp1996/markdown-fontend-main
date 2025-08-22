@@ -24,7 +24,7 @@
           <i class="el-icon-folder"></i>
           <span>文件管理</span>
         </template>
-        <el-menu-item index="file-list" v-for="item in documents" :key="item.id">
+        <el-menu-item :index="'file-list'+item.id" v-for="item in documents" :key="item.id">
           <i class="el-icon-document"></i>
           <span>{{ item.title }}</span>
         </el-menu-item>
