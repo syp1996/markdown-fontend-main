@@ -158,6 +158,17 @@ export default {
         this.openSubmenus.splice(index, 1)
       } else {
         this.openSubmenus.push(menuKey)
+        // 确保展开的菜单能够正确显示
+        this.$nextTick(() => {
+          // 如果展开的是文件管理菜单，确保滚动条正常工作
+          if (menuKey === 'files' && this.documents.length > 8) {
+            // 当文档数量较多时，确保菜单可以滚动
+            const submenu = document.querySelector('.submenu.expanded')
+            if (submenu) {
+              submenu.style.maxHeight = '60vh'
+            }
+          }
+        })
       }
     }
   }
@@ -170,10 +181,33 @@ export default {
   height: 100%;
   background-color: #304156;
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-menu {
   width: 100%;
+  flex: 1;
+  overflow-y: auto; /* 添加垂直滚动 */
+  overflow-x: hidden; /* 隐藏水平滚动 */
+}
+
+/* 自定义侧边栏滚动条样式 */
+.sidebar-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-menu::-webkit-scrollbar-track {
+  background: #304156;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+  background: #435266;
+  border-radius: 3px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb:hover {
+  background: #5a6c7d;
 }
 
 /* 一级菜单项样式 */
@@ -241,7 +275,26 @@ export default {
 }
 
 .submenu.expanded {
-  max-height: 500px; /* 足够大的值来容纳所有子项 */
+  max-height: 60vh; /* 使用视口高度的60%作为最大高度 */
+  overflow-y: auto; /* 添加垂直滚动条 */
+}
+
+/* 自定义滚动条样式 */
+.submenu.expanded::-webkit-scrollbar {
+  width: 6px;
+}
+
+.submenu.expanded::-webkit-scrollbar-track {
+  background: #1f2d3d;
+}
+
+.submenu.expanded::-webkit-scrollbar-thumb {
+  background: #435266;
+  border-radius: 3px;
+}
+
+.submenu.expanded::-webkit-scrollbar-thumb:hover {
+  background: #5a6c7d;
 }
 
 .submenu-item {
@@ -254,6 +307,9 @@ export default {
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
+  white-space: nowrap; /* 防止文本换行 */
+  overflow: hidden; /* 隐藏溢出内容 */
+  text-overflow: ellipsis; /* 显示省略号 */
 }
 
 .submenu-item:hover {
@@ -264,6 +320,12 @@ export default {
 .submenu-item.active {
   background-color: #263445;
   color: #409EFF;
+}
+
+.submenu-item span {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 图标样式 */
