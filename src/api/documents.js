@@ -1,3 +1,11 @@
+/*
+ * @Author: syp1996 304899670@qq.com
+ * @Date: 2025-08-22 13:58:01
+ * @LastEditors: syp1996 304899670@qq.com
+ * @LastEditTime: 2025-08-22 20:34:02
+ * @FilePath: \markdown-fontend-main\src\api\documents.js
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ */
 import request from '@/utils/request'
 
 // 获取文档列表
@@ -10,7 +18,7 @@ export function getDocuments(params) {
 }
 
 // 获取单个文档
-export function getDocument(id) {
+export function getDocumentById(id) {
   return request({
     url: `/documents/${id}`,
     method: 'get'
