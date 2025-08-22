@@ -2,7 +2,7 @@
   <div class="dashboard">
     <Topbar class="top-bar" />
     <div class="dashboard-content">
-      <LeftSideBar class="left-side"/>
+      <LeftSideBar class="left-side" @menu-select="handleMenuSelect"/>
       <MainContent class="main-content"/>
     </div>
   </div>
@@ -14,6 +14,7 @@ import { logout } from '@/api/user'
 import LeftSideBar from './components/LeftSideBar.vue'
 import MainContent from './components/MainContent.vue'
 import Topbar from './components/Topbar.vue'
+
 export default {
   name: 'Dashboard',
   components: {
@@ -97,8 +98,46 @@ export default {
         this.$router.push('/')
       }
     },
-    handleMenuSelect(index) {
-      this.activeMenu = index
+    handleMenuSelect(menuKey) {
+      this.activeMenu = menuKey
+      
+      // 根据菜单选择导航到相应的路由
+      switch (menuKey) {
+        case 'home':
+          this.$router.push('/dashboard/home')
+          break
+        case 'markdown-editor':
+          this.$router.push('/dashboard/markdown-editor')
+          break
+        case 'rich-editor':
+          this.$router.push('/dashboard/rich-editor')
+          break
+        case 'code-editor':
+          this.$router.push('/dashboard/code-editor')
+          break
+        case 'project-list':
+          this.$router.push('/dashboard/project-list')
+          break
+        case 'file-list':
+          // 文件列表处理
+          this.$router.push('/dashboard/file-manager')
+          break
+        case 'settings':
+          this.$router.push('/dashboard/settings')
+          break
+        case 'project-templates':
+          // 项目模板处理
+          this.$message.info('项目模板功能开发中...')
+          break
+        default:
+          // 处理文件列表项（如 file-list1, file-list2 等）
+          if (menuKey.startsWith('file-list')) {
+            this.$router.push('/dashboard/file-manager')
+          } else {
+            this.$router.push('/dashboard/home')
+          }
+          break
+      }
     },
     createNewFile() {
       this.$message.info('新建文件功能开发中...')
@@ -156,7 +195,7 @@ export default {
 
 /* 确保内容区域可以滚动 */
 .main-content {
-  padding: 20px;
+  padding: 0;
   background-color: #f0f2f5;
 }
 </style>
