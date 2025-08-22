@@ -4,120 +4,126 @@
       <h3>导航菜单</h3>
     </div> -->
     
-    <el-menu
-      :default-active="activeMenu"
-      class="sidebar-menu"
-      @select="handleMenuSelect"
-      background-color="#304156"
-      text-color="#bfcbd9"
-      active-text-color="#409EFF">
-      
+    <nav class="sidebar-menu">
       <!-- 首页 -->
-      <el-menu-item index="home">
-        <i class="el-icon-s-home"></i>
-        <span slot="title">首页</span>
-      </el-menu-item>
+      <div class="menu-item" :class="{ active: activeMenu === 'home' }" @click="handleMenuSelect('home')">
+        <i class="menu-icon">🏠</i>
+        <span class="menu-title">首页</span>
+      </div>
       
       <!-- 文件管理 -->
-      <el-submenu index="files">
-        <template slot="title">
-          <i class="el-icon-folder"></i>
-          <span>文件管理</span>
-        </template>
-        <el-menu-item :index="'file-list'+item.id" v-for="item in documents" :key="item.id">
-          <i class="el-icon-document"></i>
-          <span>{{ item.title }}</span>
-        </el-menu-item>
-        <!-- <el-menu-item index="file-upload">
-          <i class="el-icon-upload"></i>
-          <span>上传文件</span>
-        </el-menu-item>
-        <el-menu-item index="file-category">
-          <i class="el-icon-collection"></i>
-          <span>文件分类</span>
-        </el-menu-item> -->
-      </el-submenu>
+      <div class="menu-group">
+        <div class="menu-header" @click="toggleSubmenu('files')">
+          <i class="menu-icon">📁</i>
+          <span class="menu-title">文件管理</span>
+          <i class="submenu-arrow" :class="{ 'expanded': openSubmenus.includes('files') }">▶</i>
+        </div>
+        <div class="submenu" :class="{ 'expanded': openSubmenus.includes('files') }">
+          <div 
+            class="submenu-item" 
+            :class="{ active: activeMenu === 'file-list'+item.id }" 
+            v-for="item in documents" 
+            :key="item.id"
+            @click="handleMenuSelect('file-list'+item.id)"
+          >
+            <i class="submenu-icon">📄</i>
+            <span>{{ item.title }}</span>
+          </div>
+        </div>
+      </div>
       
       <!-- 文档编辑 -->
-      <el-submenu index="editor">
-        <template slot="title">
-          <i class="el-icon-edit"></i>
-          <span>文档编辑</span>
-        </template>
-        <el-menu-item index="markdown-editor">
-          <i class="el-icon-edit-outline"></i>
-          <span>Markdown编辑器</span>
-        </el-menu-item>
-        <el-menu-item index="rich-editor">
-          <i class="el-icon-edit-pen"></i>
-          <span>富文本编辑器</span>
-        </el-menu-item>
-        <el-menu-item index="code-editor">
-          <i class="el-icon-cpu"></i>
-          <span>代码编辑器</span>
-        </el-menu-item>
-      </el-submenu>
+      <div class="menu-group">
+        <div class="menu-header" @click="toggleSubmenu('editor')">
+          <i class="menu-icon">✏️</i>
+          <span class="menu-title">文档编辑</span>
+          <i class="submenu-arrow" :class="{ 'expanded': openSubmenus.includes('editor') }">▶</i>
+        </div>
+        <div class="submenu" :class="{ 'expanded': openSubmenus.includes('editor') }">
+          <div class="submenu-item" :class="{ active: activeMenu === 'markdown-editor' }" @click="handleMenuSelect('markdown-editor')">
+            <i class="submenu-icon">📝</i>
+            <span>Markdown编辑器</span>
+          </div>
+          <div class="submenu-item" :class="{ active: activeMenu === 'rich-editor' }" @click="handleMenuSelect('rich-editor')">
+            <i class="submenu-icon">✒️</i>
+            <span>富文本编辑器</span>
+          </div>
+          <div class="submenu-item" :class="{ active: activeMenu === 'code-editor' }" @click="handleMenuSelect('code-editor')">
+            <i class="submenu-icon">💻</i>
+            <span>代码编辑器</span>
+          </div>
+        </div>
+      </div>
       
       <!-- 项目管理 -->
-      <el-submenu index="projects">
-        <template slot="title">
-          <i class="el-icon-s-cooperation"></i>
-          <span>项目管理</span>
-        </template>
-        <el-menu-item index="project-list">
-          <i class="el-icon-s-order"></i>
-          <span>项目列表</span>
-        </el-menu-item>
-        <el-menu-item index="project-create">
-          <i class="el-icon-plus"></i>
-          <span>创建项目</span>
-        </el-menu-item>
-        <el-menu-item index="project-templates">
-          <i class="el-icon-document-copy"></i>
-          <span>项目模板</span>
-        </el-menu-item>
-      </el-submenu>
+      <div class="menu-group">
+        <div class="menu-header" @click="toggleSubmenu('projects')">
+          <i class="menu-icon">👥</i>
+          <span class="menu-title">项目管理</span>
+          <i class="submenu-arrow" :class="{ 'expanded': openSubmenus.includes('projects') }">▶</i>
+        </div>
+        <div class="submenu" :class="{ 'expanded': openSubmenus.includes('projects') }">
+          <div class="submenu-item" :class="{ active: activeMenu === 'project-list' }" @click="handleMenuSelect('project-list')">
+            <i class="submenu-icon">📋</i>
+            <span>项目列表</span>
+          </div>
+          <div class="submenu-item" :class="{ active: activeMenu === 'project-create' }" @click="handleMenuSelect('project-create')">
+            <i class="submenu-icon">➕</i>
+            <span>创建项目</span>
+          </div>
+          <div class="submenu-item" :class="{ active: activeMenu === 'project-templates' }" @click="handleMenuSelect('project-templates')">
+            <i class="submenu-icon">📋</i>
+            <span>项目模板</span>
+          </div>
+        </div>
+      </div>
       
       <!-- 用户中心 -->
-      <el-submenu index="user">
-        <template slot="title">
-          <i class="el-icon-user"></i>
-          <span>用户中心</span>
-        </template>
-        <el-menu-item index="profile">
-          <i class="el-icon-s-custom"></i>
-          <span>个人资料</span>
-        </el-menu-item>
-        <el-menu-item index="settings">
-          <i class="el-icon-setting"></i>
-          <span>系统设置</span>
-        </el-menu-item>
-        <el-menu-item index="preferences">
-          <i class="el-icon-s-tools"></i>
-          <span>偏好设置</span>
-        </el-menu-item>
-      </el-submenu>
+      <div class="menu-group">
+        <div class="menu-header" @click="toggleSubmenu('user')">
+          <i class="menu-icon">👤</i>
+          <span class="menu-title">用户中心</span>
+          <i class="submenu-arrow" :class="{ 'expanded': openSubmenus.includes('user') }">▶</i>
+        </div>
+        <div class="submenu" :class="{ 'expanded': openSubmenus.includes('user') }">
+          <div class="submenu-item" :class="{ active: activeMenu === 'profile' }" @click="handleMenuSelect('profile')">
+            <i class="submenu-icon">👤</i>
+            <span>个人资料</span>
+          </div>
+          <div class="submenu-item" :class="{ active: activeMenu === 'settings' }" @click="handleMenuSelect('settings')">
+            <i class="submenu-icon">⚙️</i>
+            <span>系统设置</span>
+          </div>
+          <div class="submenu-item" :class="{ active: activeMenu === 'preferences' }" @click="handleMenuSelect('preferences')">
+            <i class="submenu-icon">🔧</i>
+            <span>偏好设置</span>
+          </div>
+        </div>
+      </div>
       
       <!-- 帮助支持 -->
-      <el-submenu index="help">
-        <template slot="title">
-          <i class="el-icon-question"></i>
-          <span>帮助支持</span>
-        </template>
-        <el-menu-item index="documentation">
-          <i class="el-icon-document"></i>
-          <span>使用文档</span>
-        </el-menu-item>
-        <el-menu-item index="faq">
-          <i class="el-icon-chat-line-round"></i>
-          <span>常见问题</span>
-        </el-menu-item>
-        <el-menu-item index="contact">
-          <i class="el-icon-message"></i>
-          <span>联系我们</span>
-        </el-menu-item>
-      </el-submenu>
-    </el-menu>
+      <div class="menu-group">
+        <div class="menu-header" @click="toggleSubmenu('help')">
+          <i class="menu-icon">❓</i>
+          <span class="menu-title">帮助支持</span>
+          <i class="submenu-arrow" :class="{ 'expanded': openSubmenus.includes('help') }">▶</i>
+        </div>
+        <div class="submenu" :class="{ 'expanded': openSubmenus.includes('help') }">
+          <div class="submenu-item" :class="{ active: activeMenu === 'documentation' }" @click="handleMenuSelect('documentation')">
+            <i class="submenu-icon">📚</i>
+            <span>使用文档</span>
+          </div>
+          <div class="submenu-item" :class="{ active: activeMenu === 'faq' }" @click="handleMenuSelect('faq')">
+            <i class="submenu-icon">💬</i>
+            <span>常见问题</span>
+          </div>
+          <div class="submenu-item" :class="{ active: activeMenu === 'contact' }" @click="handleMenuSelect('contact')">
+            <i class="submenu-icon">📧</i>
+            <span>联系我们</span>
+          </div>
+        </div>
+      </div>
+    </nav>
   </div>
 </template>
 
@@ -129,7 +135,8 @@ export default {
   data() {
     return {
       activeMenu: 'home',
-      documents: []
+      documents: [],
+      openSubmenus: ['files'] // 默认展开文件管理菜单
     }
   },
   created() {
@@ -144,6 +151,14 @@ export default {
       // 向父组件发送菜单选择事件
       this.$emit('menu-select', index)
       console.log('选择了菜单:', index)
+    },
+    toggleSubmenu(menuKey) {
+      const index = this.openSubmenus.indexOf(menuKey)
+      if (index > -1) {
+        this.openSubmenus.splice(index, 1)
+      } else {
+        this.openSubmenus.push(menuKey)
+      }
     }
   }
 }
@@ -157,77 +172,110 @@ export default {
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
 }
 
-.sidebar-header {
-  padding: 20px;
-  text-align: center;
-  border-bottom: 1px solid #435266;
-}
-
-.sidebar-header h3 {
-  color: #bfcbd9;
-  margin: 0;
-  font-size: 16px;
-  font-weight: 500;
-}
-
 .sidebar-menu {
-  border: none;
   width: 100%;
 }
 
-.sidebar-menu .el-menu-item {
+/* 一级菜单项样式 */
+.menu-item {
   height: 50px;
   line-height: 50px;
+  padding: 0 20px;
+  color: #bfcbd9;
+  cursor: pointer;
   border-left: 3px solid transparent;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
 }
 
-.sidebar-menu .el-menu-item:hover {
-  background-color: #263445 !important;
+.menu-item:hover {
+  background-color: #263445;
   border-left-color: #409EFF;
 }
 
-.sidebar-menu .el-menu-item.is-active {
-  background-color: #263445 !important;
+.menu-item.active {
+  background-color: #263445;
   border-left-color: #409EFF;
-  color: #409EFF !important;
+  color: #409EFF;
 }
 
-.sidebar-menu .el-submenu__title {
+/* 菜单组样式 */
+.menu-group {
+  border-bottom: 1px solid #435266;
+}
+
+.menu-header {
   height: 50px;
   line-height: 50px;
+  padding: 0 20px;
+  color: #bfcbd9;
+  cursor: pointer;
   border-left: 3px solid transparent;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.sidebar-menu .el-submenu__title:hover {
-  background-color: #263445 !important;
+.menu-header:hover {
+  background-color: #263445;
   border-left-color: #409EFF;
 }
 
-.sidebar-menu .el-submenu.is-active .el-submenu__title {
-  color: #409EFF !important;
+.submenu-arrow {
+  font-size: 12px;
+  transition: transform 0.3s ease;
 }
 
-.sidebar-menu .el-menu-item i,
-.sidebar-menu .el-submenu__title i {
-  margin-right: 10px;
-  font-size: 16px;
+.submenu-arrow.expanded {
+  transform: rotate(90deg);
 }
 
 /* 二级菜单样式 */
-.sidebar-menu .el-menu--inline .el-menu-item {
-  padding-left: 50px !important;
+.submenu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background-color: #1f2d3d;
+}
+
+.submenu.expanded {
+  max-height: 500px; /* 足够大的值来容纳所有子项 */
+}
+
+.submenu-item {
   height: 45px;
   line-height: 45px;
+  padding: 0 20px 0 50px;
+  color: #bfcbd9;
+  cursor: pointer;
   font-size: 13px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
 }
 
-.sidebar-menu .el-menu--inline .el-menu-item:hover {
-  background-color: #1f2d3d !important;
+.submenu-item:hover {
+  background-color: #263445;
+  color: #409EFF;
 }
 
-.sidebar-menu .el-menu--inline .el-menu-item.is-active {
-  background-color: #1f2d3d !important;
-  color: #409EFF !important;
+.submenu-item.active {
+  background-color: #263445;
+  color: #409EFF;
+}
+
+/* 图标样式 */
+.menu-icon, .submenu-icon {
+  margin-right: 10px;
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.menu-title {
+  flex: 1;
 }
 </style>
 

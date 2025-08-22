@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { Message } from 'element-ui'
+import { ElMessage } from 'element-plus'
 
 // 创建axios实例
 const service = axios.create({
@@ -35,7 +35,7 @@ service.interceptors.response.use(
     // 如果后端返回了code字段，则按code判断
     if (res && typeof res === 'object' && 'code' in res) {
       if (res.code !== 200 && res.code !== 0) {
-        Message({
+        ElMessage({
           message: res.message || '请求失败',
           type: 'error',
           duration: 5 * 1000
@@ -55,7 +55,7 @@ service.interceptors.response.use(
   },
   error => {
     console.log('响应拦截器 - 错误:', error)
-    Message({
+    ElMessage({
       message: error.message || '网络错误',
       type: 'error',
       duration: 5 * 1000

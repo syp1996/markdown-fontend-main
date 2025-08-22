@@ -3,9 +3,9 @@
     <el-row :gutter="20">
       <el-col :span="12">
         <el-card>
-          <div slot="header">
+          <template #header>
             <span>用户登录</span>
-          </div>
+          </template>
           <el-form :model="loginForm" :rules="loginRules" ref="loginForm" label-width="80px">
             <el-form-item label="用户名" prop="username">
               <el-input v-model="loginForm.username" placeholder="请输入用户名"></el-input>
@@ -23,9 +23,9 @@
       
       <el-col :span="12">
         <el-card>
-          <div slot="header">
+          <template #header>
             <span>项目信息</span>
-          </div>
+          </template>
           <p>这是一个基于Vue2 + Vue CLI的前端项目，集成了以下功能：</p>
           <ul>
             <li>Vue Router 路由管理</li>
