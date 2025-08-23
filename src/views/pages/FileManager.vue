@@ -71,8 +71,24 @@
           </div>
           
           <div v-else-if="fileContent" class="content-display">
+            <!-- 内容格式指示器 -->
+            <div class="content-format-indicator">
+              <span class="format-badge" :class="getContentFormatClass()">
+                {{ getContentFormatText() }}
+              </span>
+            </div>
+            
             <div class="markdown-content">
-              <div v-html="fileContent.html"></div>
+              <!-- 优先显示HTML格式内容 -->
+              <div v-if="fileContent.html" v-html="fileContent.html"></div>
+              <!-- 如果没有HTML格式，则显示Markdown格式内容 -->
+              <div v-else-if="fileContent.markdown" class="markdown-text">
+                <pre>{{ fileContent.markdown }}</pre>
+              </div>
+              <!-- 如果都没有，显示原始内容 -->
+              <div v-else class="raw-content">
+                <pre>{{ JSON.stringify(fileContent, null, 2) }}</pre>
+              </div>
             </div>
           </div>
           
@@ -401,11 +417,20 @@ export default {
       this.error = null
       
       try {
-        // 模拟API调用延迟
-         // 尝试调用真实API
-          const response = await getDocumentById(documentId)
-          this.fileContent = response.content
-          console.log('文件内容加载成功:', this.fileContent)
+        // 尝试调用真实API
+        const response = await getDocumentById(documentId)
+        this.fileContent = response.content
+        console.log('文件内容加载成功:', this.fileContent)
+        
+        // 调试信息：显示内容格式
+        if (this.fileContent) {
+          console.log('内容格式检查:')
+          console.log('- 是否有HTML内容:', !!this.fileContent.html)
+          console.log('- 是否有Markdown内容:', !!this.fileContent.markdown)
+          console.log('- 内容类型:', typeof this.fileContent)
+          console.log('- 内容键值:', Object.keys(this.fileContent))
+        }
+        
       } catch (err) {
         console.error('加载文件内容失败:', err)
         this.error = err.message || '加载文件内容失败'
@@ -514,6 +539,26 @@ export default {
     
     formatDate(date) {
       return date.toLocaleDateString('zh-CN')
+    },
+
+    getContentFormatClass() {
+      if (this.fileContent && this.fileContent.html) {
+        return 'html';
+      } else if (this.fileContent && this.fileContent.markdown) {
+        return 'markdown';
+      } else {
+        return 'raw';
+      }
+    },
+
+    getContentFormatText() {
+      if (this.fileContent && this.fileContent.html) {
+        return 'HTML';
+      } else if (this.fileContent && this.fileContent.markdown) {
+        return 'Markdown';
+      } else {
+        return '原始内容';
+      }
     }
   }
 }
@@ -813,6 +858,48 @@ export default {
   word-wrap: break-word;
 }
 
+/* Markdown文本样式 */
+.markdown-text {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 16px;
+  margin: 0;
+}
+
+.markdown-text pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #495057;
+}
+
+/* 原始内容样式 */
+.raw-content {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  padding: 16px;
+  margin: 0;
+}
+
+.raw-content pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #6c757d;
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
 .error-message {
   display: flex;
   align-items: center;
@@ -1048,5 +1135,33 @@ export default {
   border-top: 2px solid transparent;
   border-radius: 50%;
   animation: spin 1s linear infinite;
+}
+
+/* 内容格式指示器样式 */
+.content-format-indicator {
+  margin-bottom: 20px;
+  text-align: right;
+}
+
+.format-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  text-transform: uppercase;
+}
+
+.format-badge.html {
+  background-color: #409eff; /* 蓝色 */
+}
+
+.format-badge.markdown {
+  background-color: #67c23a; /* 绿色 */
+}
+
+.format-badge.raw {
+  background-color: #909399; /* 灰色 */
 }
 </style>
