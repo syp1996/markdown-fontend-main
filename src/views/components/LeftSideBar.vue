@@ -21,13 +21,11 @@
         <div class="submenu" :class="{ 'expanded': openSubmenus.includes('files') }">
           <div 
             class="submenu-item" 
-            :class="{ active: activeMenu === 'file-list'+item.id }" 
-            v-for="item in documents" 
-            :key="item.id"
-            @click="handleMenuSelect('file-list'+item.id)"
+            :class="{ active: activeMenu === 'file-list'}" 
+            @click="handleMenuSelect('file-list')"
           >
             <i class="submenu-icon">📄</i>
-            <span>{{ item.title }}</span>
+            <span>文件管理</span>
           </div>
         </div>
       </div>
