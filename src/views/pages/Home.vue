@@ -49,13 +49,16 @@
           <div v-else class="ai-avatar">🤖</div>
         </div>
         <div class="message-content">
-          <div class="message-text" v-html="formatMessage(message.content)"></div>
+          <div class="message-text">
+            <span v-html="formatMessage(message.content)"></span>
+            <span v-if="message.isStreaming" class="streaming-cursor">|</span>
+          </div>
           <div class="message-time">{{ formatTime(message.timestamp) }}</div>
         </div>
       </div>
 
       <!-- 加载指示器 -->
-      <div v-if="isLoading" class="message-item assistant">
+      <div v-if="isLoading && !isStreaming" class="message-item assistant">
         <div class="message-avatar">
           <div class="ai-avatar">🤖</div>
         </div>
@@ -98,7 +101,7 @@
 </template>
 
 <script>
-import { chatWithDeepSeek } from '@/api/deepseek'
+import { chatWithDeepSeekStream } from '@/api/deepseek'
 
 export default {
   name: 'HomePage',
@@ -108,7 +111,9 @@ export default {
       currentMessage: '',
       isLoading: false,
       isConnected: true,
-      maxHeight: 100
+      maxHeight: 100,
+      isStreaming: false,
+      currentStreamingMessageIndex: -1
     }
   },
   mounted() {
@@ -133,27 +138,59 @@ export default {
       this.isLoading = true
       this.scrollToBottom()
       
+      // 创建一个空的助手消息用于流式更新
+      const assistantMessage = {
+        role: 'assistant',
+        content: '',
+        timestamp: new Date(),
+        isStreaming: true
+      }
+      
+      this.messages.push(assistantMessage)
+      this.currentStreamingMessageIndex = this.messages.length - 1
+      this.isStreaming = true
+      
       try {
-        const response = await chatWithDeepSeek(messageToSend, this.messages.slice(0, -1))
+        const response = await chatWithDeepSeekStream(
+          messageToSend, 
+          this.messages.slice(0, -1),
+          (chunk) => {
+            // 流式更新回调
+            if (this.currentStreamingMessageIndex >= 0) {
+              this.messages[this.currentStreamingMessageIndex].content += chunk
+              this.scrollToBottom()
+            }
+          }
+        )
         
-        const assistantMessage = {
-          role: 'assistant',
-          content: response,
-          timestamp: new Date()
+        // 流式传输完成，更新最终状态
+        if (this.currentStreamingMessageIndex >= 0) {
+          this.messages[this.currentStreamingMessageIndex].content = response
+          this.messages[this.currentStreamingMessageIndex].isStreaming = false
         }
         
-        this.messages.push(assistantMessage)
       } catch (error) {
         console.error('发送消息失败:', error)
-        const errorMessage = {
-          role: 'assistant',
-          content: '抱歉，我现在无法回复您的消息。请稍后再试。',
-          timestamp: new Date()
+        
+        // 如果有正在流式传输的消息，替换为错误消息
+        if (this.currentStreamingMessageIndex >= 0) {
+          this.messages[this.currentStreamingMessageIndex].content = '抱歉，我现在无法回复您的消息。请稍后再试。'
+          this.messages[this.currentStreamingMessageIndex].isStreaming = false
+        } else {
+          // 否则添加新的错误消息
+          const errorMessage = {
+            role: 'assistant',
+            content: '抱歉，我现在无法回复您的消息。请稍后再试。',
+            timestamp: new Date()
+          }
+          this.messages.push(errorMessage)
         }
-        this.messages.push(errorMessage)
+        
         this.$message.error('发送消息失败: ' + (error.message || '未知错误'))
       } finally {
         this.isLoading = false
+        this.isStreaming = false
+        this.currentStreamingMessageIndex = -1
         this.scrollToBottom()
         this.focusInput()
       }
@@ -574,6 +611,24 @@ export default {
   30% {
     transform: translateY(-10px);
     opacity: 1;
+  }
+}
+
+/* 流式打字光标 */
+.streaming-cursor {
+  display: inline-block;
+  animation: blink 1s infinite;
+  font-weight: bold;
+  color: #409eff;
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
   }
 }
 

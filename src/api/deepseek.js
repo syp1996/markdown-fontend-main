@@ -7,7 +7,8 @@ const DEEPSEEK_CONFIG = {
 }
 
 /**
- * 与 DeepSeek AI 进行对话
+ * 
+ * 与 DeepSeek AI 进行对话（非流式）
  * @param {string} message - 用户消息
  * @param {Array} history - 历史消息记录
  * @returns {Promise<string>} AI 回复
@@ -70,6 +71,112 @@ export async function chatWithDeepSeek(message, history = []) {
     // 如果是网络错误或API错误，返回模拟回复
     if (error.message.includes('API') || error.message.includes('fetch')) {
       return getMockResponse(message)
+    }
+    
+    throw error
+  }
+}
+
+/**
+ * 与 DeepSeek AI 进行对话（流式）
+ * @param {string} message - 用户消息
+ * @param {Array} history - 历史消息记录
+ * @param {Function} onChunk - 接收流式数据的回调函数
+ * @returns {Promise<string>} 完整的AI回复
+ */
+export async function chatWithDeepSeekStream(message, history = [], onChunk) {
+  try {
+    // 构建消息历史
+    const messages = [
+      {
+        role: 'system',
+        content: '你是DeepSeek AI助手，一个有用、无害、诚实的AI助手。请用中文回答用户的问题，提供准确、有帮助的信息。'
+      }
+    ]
+
+    // 添加历史消息（限制最近10条）
+    const recentHistory = history.slice(-10)
+    messages.push(...recentHistory.map(msg => ({
+      role: msg.role,
+      content: msg.content
+    })))
+
+    // 添加当前用户消息
+    messages.push({
+      role: 'user',
+      content: message
+    })
+
+    // 发送流式请求到DeepSeek API
+    const response = await fetch(`${DEEPSEEK_CONFIG.baseURL}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DEEPSEEK_CONFIG.apiKey}`
+      },
+      body: JSON.stringify({
+        model: DEEPSEEK_CONFIG.model,
+        messages: messages,
+        max_tokens: 2000,
+        temperature: 0.7,
+        stream: true
+      })
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(`DeepSeek API 错误: ${response.status} - ${errorData.error?.message || response.statusText}`)
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let fullContent = ''
+
+    let reading = true
+    while (reading) {
+      const { done, value } = await reader.read()
+      
+      if (done) {
+        reading = false
+        break
+      }
+
+      const chunk = decoder.decode(value, { stream: true })
+      const lines = chunk.split('\n').filter(line => line.trim() !== '')
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6)
+          
+          if (data === '[DONE]') {
+            break
+          }
+
+          try {
+            const parsed = JSON.parse(data)
+            const content = parsed.choices?.[0]?.delta?.content
+            
+            if (content) {
+              fullContent += content
+              if (onChunk) {
+                onChunk(content)
+              }
+            }
+          } catch (e) {
+            // 忽略解析错误
+          }
+        }
+      }
+    }
+
+    return fullContent.trim()
+
+  } catch (error) {
+    console.error('DeepSeek 流式API 调用失败:', error)
+    
+    // 如果是网络错误或API错误，使用模拟流式回复
+    if (error.message.includes('API') || error.message.includes('fetch')) {
+      return getMockStreamResponse(message, onChunk)
     }
     
     throw error
@@ -186,6 +293,34 @@ project/
 }
 
 /**
+ * 获取模拟流式回复（用于开发和测试）
+ * @param {string} message - 用户消息
+ * @param {Function} onChunk - 接收流式数据的回调函数
+ * @returns {Promise<string>} 完整的模拟回复
+ */
+async function getMockStreamResponse(message, onChunk) {
+  const response = getMockResponse(message)
+  
+  // 模拟流式返回，每个字符延迟一定时间
+  let fullContent = ''
+  
+  for (let i = 0; i < response.length; i++) {
+    const char = response[i]
+    fullContent += char
+    
+    if (onChunk) {
+      onChunk(char)
+    }
+    
+    // 模拟打字速度：中文字符稍慢，英文和标点稍快
+    const delay = /[\u4e00-\u9fa5]/.test(char) ? 50 : 30
+    await new Promise(resolve => setTimeout(resolve, delay))
+  }
+  
+  return fullContent
+}
+
+/**
  * 检查DeepSeek API配置
  * @returns {Object} 配置检查结果
  */
@@ -202,5 +337,6 @@ export function checkDeepSeekConfig() {
 
 export default {
   chatWithDeepSeek,
+  chatWithDeepSeekStream,
   checkDeepSeekConfig
 }
