@@ -5,10 +5,10 @@
     </div> -->
     
     <nav class="sidebar-menu">
-      <!-- 首页 -->
+      <!-- AI助手 -->
       <div class="menu-item" :class="{ active: activeMenu === 'home' }" @click="handleMenuSelect('home')">
-        <i class="menu-icon">🏠</i>
-        <span class="menu-title">首页</span>
+        <i class="menu-icon">🤖</i>
+        <span class="menu-title">AI助手</span>
       </div>
       
       <!-- 文件管理 -->
