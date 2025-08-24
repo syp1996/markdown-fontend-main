@@ -50,6 +50,10 @@
             <i class="submenu-icon">💻</i>
             <span>代码编辑器</span>
           </div>
+          <div class="submenu-item" :class="{ active: activeMenu === 'universal-compiler' }" @click="handleMenuSelect('universal-compiler')">
+            <i class="submenu-icon">🚀</i>
+            <span>统一编译器</span>
+          </div>
         </div>
       </div>
       

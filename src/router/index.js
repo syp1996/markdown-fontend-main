@@ -8,6 +8,7 @@ import MarkdownEditor from '../views/pages/MarkdownEditor.vue'
 import ProjectList from '../views/pages/ProjectList.vue'
 import RichEditor from '../views/pages/RichEditor.vue'
 import UserSettings from '../views/pages/UserSettings.vue'
+import UniversalCompilerDemo from '../views/pages/UniversalCompilerDemo.vue'
 
 const routes = [
   {
@@ -60,6 +61,11 @@ const routes = [
         path: 'settings',
         name: 'UserSettings',
         component: UserSettings
+      },
+      {
+        path: 'universal-compiler',
+        name: 'UniversalCompilerDemo',
+        component: UniversalCompilerDemo
       }
     ]
   }

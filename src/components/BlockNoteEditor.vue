@@ -1,76 +1,94 @@
 <template>
   <div class="editor-container">
-    <div ref="editorRef" class="editor-content"></div>
+    <div class="editor-content">
+      <textarea
+        ref="editorRef"
+        v-model="localValue"
+        class="fallback-editor"
+        placeholder="在这里编写内容..."
+        @input="onInput"
+        @blur="onBlur"
+      ></textarea>
+    </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import type { PartialBlock } from '@blocknote/core';
-import { BlockNoteEditor, BlockNoteView } from '@blocknote/core';
-import '@blocknote/style/dist/style.css';
-import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-
-// 定义 Props
-const props = defineProps<{
-  modelValue?: PartialBlock[];
-}>();
-
-// 定义 Emits
-const emit = defineEmits<{
-  (e: 'update:modelValue', content: PartialBlock[]): void;
-}>();
-
-// 编辑器引用
-const editorRef = ref<HTMLElement>();
-let editor: BlockNoteEditor | null = null;
-
-// 初始化编辑器
-const initEditor = async () => {
-  if (!editorRef.value) return;
-
-  // 创建编辑器实例
-  editor = new BlockNoteEditor({
-    initialContent: props.modelValue || undefined,
-    onEditorContentChange: (editorInstance) => {
-      // 当内容变化时，发送更新事件
-      const content = editorInstance.topLevelBlocks;
-      emit('update:modelValue', content);
+<script>
+export default {
+  name: 'BlockNoteEditor',
+  props: {
+    modelValue: {
+      type: [String, Array, Object],
+      default: ''
+    }
+  },
+  data() {
+    return {
+      localValue: ''
+    }
+  },
+  watch: {
+    modelValue: {
+      immediate: true,
+      handler(newValue) {
+        this.updateLocalValue(newValue)
+      }
+    }
+  },
+  methods: {
+    updateLocalValue(value) {
+      if (typeof value === 'string') {
+        this.localValue = value
+      } else if (Array.isArray(value)) {
+        // 如果是数组，尝试转换为文本
+        try {
+          this.localValue = this.blocksToText(value)
+        } catch (error) {
+          this.localValue = JSON.stringify(value, null, 2)
+        }
+      } else if (value && typeof value === 'object') {
+        // 如果是对象，转换为文本
+        this.localValue = JSON.stringify(value, null, 2)
+      } else {
+        this.localValue = ''
+      }
     },
-  });
-
-  // 渲染编辑器到 DOM
-  const view = new BlockNoteView(editor, editorRef.value);
-  
-  // 等待编辑器完全初始化
-  await nextTick();
-};
-
-// 监听外部内容变化
-watch(() => props.modelValue, (newContent) => {
-  if (editor && newContent) {
-    // 检查内容是否真的不同
-    const currentContent = JSON.stringify(editor.topLevelBlocks);
-    const newContentStr = JSON.stringify(newContent);
     
-    if (currentContent !== newContentStr) {
-      // 更新编辑器内容
-      editor.replaceBlocks(editor.topLevelBlocks, newContent);
+    blocksToText(blocks) {
+      if (!Array.isArray(blocks)) return ''
+      
+      return blocks.map(block => {
+        if (block.type === 'paragraph' && block.content) {
+          return block.content.map(item => item.text || '').join('')
+        }
+        return block.text || ''
+      }).join('\n\n')
+    },
+    
+    textToBlocks(text) {
+      if (!text || typeof text !== 'string') return []
+      
+      const lines = text.split('\n').filter(line => line.trim())
+      return lines.map(line => ({
+        type: 'paragraph',
+        content: [{ type: 'text', text: line }]
+      }))
+    },
+    
+    onInput() {
+      // 发送输入事件
+      this.$emit('input', this.localValue)
+      this.$emit('update:modelValue', this.localValue)
+    },
+    
+    onBlur() {
+      // 发送失焦事件，可以在这里进行格式转换
+      const blocks = this.textToBlocks(this.localValue)
+      this.$emit('input', blocks)
+      this.$emit('update:modelValue', blocks)
     }
   }
-});
-
-// 组件挂载时初始化编辑器
-onMounted(() => {
-  initEditor();
-});
-
-// 组件卸载时清理编辑器
-onUnmounted(() => {
-  if (editor) {
-    editor.destroy();
-    editor = null;
-  }
-});
+}
 </script>
 
 <style scoped>
@@ -83,5 +101,23 @@ onUnmounted(() => {
 
 .editor-content {
   min-height: 300px;
+}
+
+.fallback-editor {
+  width: 100%;
+  height: 300px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  outline: none;
+}
+
+.fallback-editor:focus {
+  border-color: #409EFF;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
 }
 </style>

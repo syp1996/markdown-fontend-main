@@ -16,6 +16,12 @@ export default {
 </script>
 
 <style>
+/* 重置 body 的默认 margin */
+body {
+  margin: 0;
+  padding: 0;
+}
+
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

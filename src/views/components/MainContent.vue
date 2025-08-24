@@ -21,7 +21,7 @@ export default {
 <style scoped>
 .main-content {
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
   background-color: #f0f2f5;
 }
 </style>

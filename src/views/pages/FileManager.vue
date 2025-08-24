@@ -71,25 +71,15 @@
           </div>
           
           <div v-else-if="fileContent" class="content-display">
-            <!-- 内容格式指示器 -->
-            <div class="content-format-indicator">
-              <span class="format-badge" :class="getContentFormatClass()">
-                {{ getContentFormatText() }}
-              </span>
-            </div>
-            
-            <div class="markdown-content">
-              <!-- 优先显示HTML格式内容 -->
-              <div v-if="fileContent.html" v-html="fileContent.html"></div>
-              <!-- 如果没有HTML格式，则显示Markdown格式内容 -->
-              <div v-else-if="fileContent.markdown" class="markdown-text">
-                <pre>{{ fileContent.markdown }}</pre>
-              </div>
-              <!-- 如果都没有，显示原始内容 -->
-              <div v-else class="raw-content">
-                <pre>{{ JSON.stringify(fileContent, null, 2) }}</pre>
-              </div>
-            </div>
+            <!-- 使用统一文件编译器 -->
+            <UniversalFileCompiler
+              :content="fileContent"
+              :fileName="selectedFile.title || selectedFile.name"
+              :fileFormat="detectFileFormat(selectedFile, fileContent)"
+              :readOnly="false"
+              @save="handleFileSave"
+              @format-change="handleFormatChange"
+            />
           </div>
           
           <div v-else-if="error" class="error-message">
@@ -159,8 +149,13 @@
 
 <script>
 import { getDocumentById, getDocuments, uploadDocument } from '@/api/documents';
+import UniversalFileCompiler from '@/components/UniversalFileCompiler.vue';
+
 export default {
   name: 'FileManager',
+  components: {
+    UniversalFileCompiler
+  },
   data() {
     return {
       searchQuery: '',
@@ -559,6 +554,64 @@ export default {
       } else {
         return '原始内容';
       }
+    },
+    
+    // 检测文件格式
+    detectFileFormat(file, content) {
+      // 根据文件扩展名和内容类型判断格式
+      if (file.name && file.name.endsWith('.md')) {
+        return 'markdown';
+      } else if (file.name && file.name.endsWith('.html')) {
+        return 'html';
+      } else if (file.name && file.name.endsWith('.txt')) {
+        return 'text';
+      } else if (content && content.html) {
+        return 'html';
+      } else if (content && content.markdown) {
+        return 'markdown';
+      } else if (typeof content === 'string') {
+        // 简单判断是否为Markdown格式
+        if (content.includes('# ') || content.includes('## ') || content.includes('* ') || content.includes('- ')) {
+          return 'markdown';
+        }
+        return 'text';
+      }
+      return 'text';
+    },
+    
+    // 处理文件保存
+    async handleFileSave(saveData) {
+      try {
+        console.log('保存文件:', saveData);
+        
+        // 这里应该调用API保存文件
+        // 暂时显示成功消息
+        this.$message.success(`文件 ${saveData.fileName} 保存成功！`);
+        
+        // 更新本地文件内容
+        if (this.fileContent) {
+          if (saveData.format === 'markdown') {
+            this.fileContent.markdown = saveData.content;
+          } else if (saveData.format === 'html') {
+            this.fileContent.html = saveData.content;
+          } else {
+            this.fileContent = saveData.content;
+          }
+        }
+        
+      } catch (error) {
+        console.error('保存文件失败:', error);
+        this.$message.error('保存失败：' + error.message);
+      }
+    },
+    
+    // 处理格式转换
+    handleFormatChange(changeData) {
+      console.log('格式转换:', changeData);
+      this.$message.info(`格式转换：${changeData.from} → ${changeData.to}`);
+      
+      // 这里可以实现格式转换逻辑
+      // 例如：Markdown转HTML，HTML转纯文本等
     }
   }
 }
@@ -667,6 +720,7 @@ export default {
   display: flex;
   gap: 20px;
   height: calc(100vh - 200px);
+  overflow: hidden;
 }
 
 /* 左侧文件列表容器 */
