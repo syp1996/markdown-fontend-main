@@ -14,6 +14,7 @@ import {
     ElMenu,
     ElMenuItem,
     ElMessage,
+    ElMessageBox,
     ElRow,
     ElSubmenu
 } from 'element-plus'
@@ -33,8 +34,9 @@ app.component('ElFormItem', ElFormItem)
 app.component('ElInput', ElInput)
 app.component('ElButton', ElButton)
 
-// 全局配置 ElMessage
+// 全局配置 ElMessage 和 ElMessageBox
 app.config.globalProperties.$message = ElMessage
+app.config.globalProperties.$confirm = ElMessageBox.confirm
 
 app.use(router)
 app.use(store)

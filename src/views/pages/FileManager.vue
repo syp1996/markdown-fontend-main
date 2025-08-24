@@ -148,7 +148,7 @@
 </template>
 
 <script>
-import { getDocumentById, getDocuments, uploadDocument } from '@/api/documents';
+import { deleteDocument, getDocumentById, getDocuments, uploadDocument } from '@/api/documents';
 import UniversalFileCompiler from '@/components/UniversalFileCompiler.vue';
 
 export default {
@@ -509,20 +509,38 @@ export default {
       }
     },
     
-    deleteFile(file) {
-      if (confirm(`确定要删除 ${file.name} 吗？`)) {
-        const index = this.files.findIndex(f => f.id === file.id)
-        if (index > -1) {
-          this.files.splice(index, 1)
-          // 如果删除的是当前选中的文件，清空选择
-          if (this.selectedFile && this.selectedFile.id === file.id) {
-            this.selectedFile = null
-            this.fileContent = null
+                   async deleteFile(file) {
+        try {
+          await this.$confirm(`确定要删除 ${file.title || file.name} 吗？`, '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+          
+          // 调用删除接口
+          await deleteDocument(file.id)
+          
+          // 从本地列表中移除文件
+          const index = this.files.findIndex(f => f.id === file.id)
+          if (index > -1) {
+            this.files.splice(index, 1)
+            // 如果删除的是当前选中的文件，清空选择
+            if (this.selectedFile && this.selectedFile.id === file.id) {
+              this.selectedFile = null
+              this.fileContent = null
+            }
           }
+          
           this.$message.success('文件已删除')
+        } catch (error) {
+          if (error === 'cancel') {
+            this.$message.info('已取消删除')
+          } else {
+            console.error('删除文件失败：', error)
+            this.$message.error('删除失败：' + (error.message || '未知错误'))
+          }
         }
-      }
-    },
+      },
     
     formatFileSize(bytes) {
       if (bytes === 0) return '0 B'
