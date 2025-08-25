@@ -902,6 +902,9 @@ export default {
   overflow: hidden;
   background: white;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .toolbar {
@@ -912,6 +915,9 @@ export default {
   border-bottom: 1px solid #ddd;
   gap: 4px;
   flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .format-btn {
@@ -1054,6 +1060,7 @@ export default {
 }
 
 .editor-content {
+  flex: 1;
   overflow-y: auto;
   background: white;
   /* 隐藏滚动条但保持滚动功能 */
