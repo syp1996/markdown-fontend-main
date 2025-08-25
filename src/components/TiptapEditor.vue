@@ -41,6 +41,32 @@
       >
         <u>U</u>
       </button>
+      <!-- 高亮背景 -->
+      <button 
+        @click="editor && editor.chain().focus().toggleHighlight().run()"
+        :class="{ active: editor && editor.isActive('highlight') }"
+        class="format-btn"
+        title="背景高亮"
+      >
+        🖍️ 高亮
+      </button>
+      <!-- 上标下标 -->
+      <button 
+        @click="editor && editor.chain().focus().toggleSuperscript().run()"
+        :class="{ active: editor && editor.isActive('superscript') }"
+        class="format-btn"
+        title="上标"
+      >
+        X²
+      </button>
+      <button 
+        @click="editor && editor.chain().focus().toggleSubscript().run()"
+        :class="{ active: editor && editor.isActive('subscript') }"
+        class="format-btn"
+        title="下标"
+      >
+        X₂
+      </button>
       <div class="separator"></div>
       <!-- 文本颜色 -->
       <div class="color-picker-wrapper">
@@ -125,6 +151,40 @@
         🗑️表格
       </button>
       <div class="separator"></div>
+      <!-- 文本对齐 -->
+      <button 
+        @click="editor && editor.chain().focus().setTextAlign('left').run()"
+        :class="{ active: editor && editor.isActive({ textAlign: 'left' }) }"
+        class="format-btn"
+        title="左对齐"
+      >
+        ⬅️
+      </button>
+      <button 
+        @click="editor && editor.chain().focus().setTextAlign('center').run()"
+        :class="{ active: editor && editor.isActive({ textAlign: 'center' }) }"
+        class="format-btn"
+        title="居中对齐"
+      >
+        ↔️
+      </button>
+      <button 
+        @click="editor && editor.chain().focus().setTextAlign('right').run()"
+        :class="{ active: editor && editor.isActive({ textAlign: 'right' }) }"
+        class="format-btn"
+        title="右对齐"
+      >
+        ➡️
+      </button>
+      <button 
+        @click="editor && editor.chain().focus().setTextAlign('justify').run()"
+        :class="{ active: editor && editor.isActive({ textAlign: 'justify' }) }"
+        class="format-btn"
+        title="两端对齐"
+      >
+        ↕️
+      </button>
+      <div class="separator"></div>
       <button 
         @click="editor && editor.chain().focus().toggleHeading({ level: 1 }).run()"
         :class="{ active: editor && editor.isActive('heading', { level: 1 }) }"
@@ -166,6 +226,15 @@
       >
         1. 列表
       </button>
+      <!-- 任务列表 -->
+      <button 
+        @click="editor && editor.chain().focus().toggleTaskList().run()"
+        :class="{ active: editor && editor.isActive('taskList') }"
+        class="format-btn"
+        title="任务列表"
+      >
+        ☑️ 任务
+      </button>
       <button 
         @click="editor && editor.chain().focus().toggleBlockquote().run()"
         :class="{ active: editor && editor.isActive('blockquote') }"
@@ -173,6 +242,23 @@
         title="引用"
       >
         " 引用
+      </button>
+      <!-- 代码块 -->
+      <button 
+        @click="editor && editor.chain().focus().toggleCodeBlock().run()"
+        :class="{ active: editor && editor.isActive('codeBlock') }"
+        class="format-btn"
+        title="代码块"
+      >
+        💻 代码块
+      </button>
+      <!-- 水平分割线 -->
+      <button 
+        @click="editor && editor.chain().focus().setHorizontalRule().run()"
+        class="format-btn"
+        title="水平分割线"
+      >
+        ➖ 分割线
       </button>
       <div class="separator"></div>
       <button 
@@ -204,22 +290,122 @@
       class="editor-content"
       :style="{ height: height }"
     />
+    <!-- 状态栏 -->
+    <div class="status-bar" v-if="showStatusBar && editor">
+      <div class="status-item">
+        字符: {{ editor.storage.characterCount?.characters() || 0 }}
+      </div>
+      <div class="status-item">
+        词数: {{ editor.storage.characterCount?.words() || 0 }}
+      </div>
+      <div class="status-item">
+        段落: {{ countParagraphs }}
+      </div>
+    </div>
+
+    <!-- 气泡菜单 -->
+    <div
+      v-if="editor && bubbleMenuEditor"
+      ref="bubbleMenu"
+      class="bubble-menu"
+      v-show="bubbleMenuVisible"
+    >
+      <button 
+        @click="editor.chain().focus().toggleBold().run()"
+        :class="{ active: editor.isActive('bold') }"
+        class="bubble-btn"
+      >
+        <strong>B</strong>
+      </button>
+      <button 
+        @click="editor.chain().focus().toggleItalic().run()"
+        :class="{ active: editor.isActive('italic') }"
+        class="bubble-btn"
+      >
+        <em>I</em>
+      </button>
+      <button 
+        @click="editor.chain().focus().toggleUnderline().run()"
+        :class="{ active: editor.isActive('underline') }"
+        class="bubble-btn"
+      >
+        <u>U</u>
+      </button>
+      <button 
+        @click="editor.chain().focus().toggleHighlight().run()"
+        :class="{ active: editor.isActive('highlight') }"
+        class="bubble-btn"
+      >
+        🖍️
+      </button>
+    </div>
+
+    <!-- 浮动菜单 -->
+    <div
+      v-if="editor && floatingMenuEditor"
+      ref="floatingMenu"
+      class="floating-menu"
+      v-show="floatingMenuVisible"
+    >
+      <button 
+        @click="editor.chain().focus().toggleHeading({ level: 1 }).run()"
+        class="floating-btn"
+      >
+        H1
+      </button>
+      <button 
+        @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
+        class="floating-btn"
+      >
+        H2
+      </button>
+      <button 
+        @click="editor.chain().focus().toggleBulletList().run()"
+        class="floating-btn"
+      >
+        • 列表
+      </button>
+      <button 
+        @click="editor.chain().focus().toggleCodeBlock().run()"
+        class="floating-btn"
+      >
+        💻 代码
+      </button>
+    </div>
   </div>
 </template>
 
 <script>
+import Placeholder from '@tiptap/extension-placeholder'
+import StarterKit from '@tiptap/starter-kit'
+import { Editor, EditorContent } from '@tiptap/vue-3'
+
+// 基础文本格式
 import Color from '@tiptap/extension-color'
 import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
-import Placeholder from '@tiptap/extension-placeholder'
+import TextStyle from '@tiptap/extension-text-style'
+import Underline from '@tiptap/extension-underline'
+
+// 表格
 import Table from '@tiptap/extension-table'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import TableRow from '@tiptap/extension-table-row'
-import TextStyle from '@tiptap/extension-text-style'
-import Underline from '@tiptap/extension-underline'
-import StarterKit from '@tiptap/starter-kit'
-import { Editor, EditorContent } from '@tiptap/vue-3'
+
+// 第二优先级扩展
+import CharacterCount from '@tiptap/extension-character-count'
+import CodeBlock from '@tiptap/extension-code-block'
+import TaskItem from '@tiptap/extension-task-item'
+import TaskList from '@tiptap/extension-task-list'
+import TextAlign from '@tiptap/extension-text-align'
+
+// 第三优先级扩展
+import Highlight from '@tiptap/extension-highlight'
+import HorizontalRule from '@tiptap/extension-horizontal-rule'
+import Subscript from '@tiptap/extension-subscript'
+import Superscript from '@tiptap/extension-superscript'
+import Typography from '@tiptap/extension-typography'
 
 export default {
   name: 'TiptapEditor',
@@ -243,6 +429,18 @@ export default {
       type: Boolean,
       default: true
     },
+    showStatusBar: {
+      type: Boolean,
+      default: true
+    },
+    enableBubbleMenu: {
+      type: Boolean,
+      default: true
+    },
+    enableFloatingMenu: {
+      type: Boolean,
+      default: true
+    },
     format: {
       type: String,
       default: 'html',
@@ -253,6 +451,17 @@ export default {
   data() {
     return {
       editor: null,
+      bubbleMenuEditor: null,
+      floatingMenuEditor: null,
+      bubbleMenuVisible: false,
+      floatingMenuVisible: false,
+    }
+  },
+  computed: {
+    countParagraphs() {
+      if (!this.editor) return 0
+      const doc = this.editor.getJSON()
+      return this.countNodesByType(doc, 'paragraph')
     }
   },
   mounted() {
@@ -299,6 +508,28 @@ export default {
           TableRow,
           TableHeader,
           TableCell,
+          // 第二优先级扩展
+          TaskList,
+          TaskItem,
+          TextAlign.configure({
+            types: ['heading', 'paragraph'],
+          }),
+          CodeBlock.configure({
+            HTMLAttributes: {
+              class: 'tiptap-code-block',
+            },
+          }),
+          CharacterCount,
+          // 第三优先级扩展
+          Highlight.configure({
+            HTMLAttributes: {
+              class: 'tiptap-highlight',
+            },
+          }),
+          Superscript,
+          Subscript,
+          HorizontalRule,
+          Typography,
         ],
         onUpdate: () => {
           const content = this.getCurrentValue()
@@ -542,6 +773,70 @@ export default {
       if (this.editor) {
         this.editor.chain().focus().deleteTable().run()
       }
+    },
+
+    // 新增功能方法
+
+    // 工具函数
+    countNodesByType(node, type) {
+      let count = 0
+      if (node.type === type) {
+        count++
+      }
+      if (node.content) {
+        node.content.forEach(child => {
+          count += this.countNodesByType(child, type)
+        })
+      }
+      return count
+    },
+
+    // 文本对齐
+    setTextAlign(alignment) {
+      if (this.editor) {
+        this.editor.chain().focus().setTextAlign(alignment).run()
+      }
+    },
+
+    // 高亮功能
+    toggleHighlight() {
+      if (this.editor) {
+        this.editor.chain().focus().toggleHighlight().run()
+      }
+    },
+
+    // 上标下标
+    toggleSuperscript() {
+      if (this.editor) {
+        this.editor.chain().focus().toggleSuperscript().run()
+      }
+    },
+
+    toggleSubscript() {
+      if (this.editor) {
+        this.editor.chain().focus().toggleSubscript().run()
+      }
+    },
+
+    // 任务列表
+    toggleTaskList() {
+      if (this.editor) {
+        this.editor.chain().focus().toggleTaskList().run()
+      }
+    },
+
+    // 代码块
+    toggleCodeBlock() {
+      if (this.editor) {
+        this.editor.chain().focus().toggleCodeBlock().run()
+      }
+    },
+
+    // 水平分割线
+    setHorizontalRule() {
+      if (this.editor) {
+        this.editor.chain().focus().setHorizontalRule().run()
+      }
     }
   }
 }
@@ -624,6 +919,85 @@ export default {
 /* 文件上传隐藏样式 */
 .file-input {
   display: none;
+}
+
+/* 状态栏样式 */
+.status-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-top: 1px solid #ddd;
+  font-size: 12px;
+  color: #666;
+  gap: 16px;
+}
+
+.status-item {
+  font-family: monospace;
+}
+
+/* 气泡菜单样式 */
+.bubble-menu {
+  display: flex;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  gap: 2px;
+  position: absolute;
+  z-index: 1000;
+}
+
+.bubble-btn {
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  color: #333;
+}
+
+.bubble-btn:hover {
+  background: #f0f0f0;
+}
+
+.bubble-btn.active {
+  background: #007acc;
+  color: white;
+}
+
+/* 浮动菜单样式 */
+.floating-menu {
+  display: flex;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  gap: 2px;
+  position: absolute;
+  z-index: 1000;
+}
+
+.floating-btn {
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+  color: #333;
+  white-space: nowrap;
+}
+
+.floating-btn:hover {
+  background: #f0f0f0;
 }
 
 .editor-content {
@@ -837,6 +1211,93 @@ export default {
 
 :deep(.tiptap-editor-instance table p) {
   margin: 0;
+}
+
+/* 新增样式 */
+
+/* 高亮背景样式 */
+:deep(.tiptap-highlight) {
+  background-color: #ffeb3b;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+/* 上标下标样式 */
+:deep(.tiptap-editor-instance sup) {
+  vertical-align: super;
+  font-size: 0.8em;
+}
+
+:deep(.tiptap-editor-instance sub) {
+  vertical-align: sub;
+  font-size: 0.8em;
+}
+
+/* 任务列表样式 */
+:deep(.tiptap-editor-instance ul[data-type="taskList"]) {
+  list-style: none;
+  padding-left: 0;
+}
+
+:deep(.tiptap-editor-instance li[data-type="taskItem"]) {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+:deep(.tiptap-editor-instance li[data-type="taskItem"] > label) {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+:deep(.tiptap-editor-instance li[data-type="taskItem"] > div) {
+  flex: 1;
+}
+
+/* 代码块样式 */
+:deep(.tiptap-code-block) {
+  background: #2d3748;
+  color: #e2e8f0;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 16px 0;
+  overflow-x: auto;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+:deep(.tiptap-code-block pre) {
+  margin: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* 水平分割线样式 */
+:deep(.tiptap-editor-instance hr) {
+  border: none;
+  border-top: 2px solid #ddd;
+  margin: 24px 0;
+}
+
+/* 文本对齐样式 */
+:deep(.tiptap-editor-instance [style*="text-align: left"]) {
+  text-align: left;
+}
+
+:deep(.tiptap-editor-instance [style*="text-align: center"]) {
+  text-align: center;
+}
+
+:deep(.tiptap-editor-instance [style*="text-align: right"]) {
+  text-align: right;
+}
+
+:deep(.tiptap-editor-instance [style*="text-align: justify"]) {
+  text-align: justify;
 }
 
 /* 响应式设计 */

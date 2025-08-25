@@ -91,25 +91,74 @@
       <div class="demo-section">
         <h3>功能说明</h3>
         <div class="feature-list">
-          <h4>支持的功能：</h4>
-          <ul>
-            <li>✅ 丰富的文本格式化（加粗、斜体、<u>下划线</u>、删除线、行内代码）</li>
-            <li>✅ <span style="color: #e74c3c">文本颜色</span> 自定义</li>
-            <li>✅ 多级标题支持（H1-H6）</li>
-            <li>✅ 列表功能（有序列表、无序列表）</li>
-            <li>✅ 🔗 <strong>超链接</strong> 插入和编辑</li>
-            <li>✅ 🖼️ <strong>图片上传</strong> 和显示</li>
-            <li>✅ 📊 <strong>表格创建</strong> 和编辑（行列操作）</li>
-            <li>✅ 引用块支持</li>
-            <li>✅ 撤销/重做功能</li>
-            <li>✅ 多种输出格式（HTML、Text、JSON）</li>
-            <li>✅ 可自定义工具栏</li>
-            <li>✅ 键盘快捷键支持</li>
-            <li>✅ 自定义高度和样式</li>
-            <li>✅ Vue 3 响应式集成</li>
-            <li>✅ 模块化和可扩展设计</li>
-            <li>✅ 出色的性能表现</li>
-          </ul>
+          <h4>🎯 完整功能列表：</h4>
+          <div class="feature-grid">
+            <div class="feature-category">
+              <h5>📝 文本格式</h5>
+              <ul>
+                <li>✅ 粗体、斜体、<u>下划线</u>、删除线</li>
+                <li>✅ <span style="color: #e74c3c">文本颜色</span> 自定义</li>
+                <li>✅ <mark style="background: #ffeb3b">背景高亮</mark></li>
+                <li>✅ 上标<sup>2</sup> 和下标<sub>2</sub></li>
+                <li>✅ <code>行内代码</code> 高亮</li>
+              </ul>
+            </div>
+            
+            <div class="feature-category">
+              <h5>📐 布局与对齐</h5>
+              <ul>
+                <li>✅ ⬅️ 左对齐、↔️ 居中、➡️ 右对齐</li>
+                <li>✅ ↕️ 两端对齐</li>
+                <li>✅ H1-H6 多级标题</li>
+                <li>✅ 有序/无序列表</li>
+                <li>✅ ☑️ 任务列表（可勾选）</li>
+              </ul>
+            </div>
+            
+            <div class="feature-category">
+              <h5>🖼️ 多媒体内容</h5>
+              <ul>
+                <li>✅ 🔗 超链接插入和编辑</li>
+                <li>✅ 🖼️ 图片上传和显示</li>
+                <li>✅ 📊 表格创建和编辑</li>
+                <li>✅ 💻 代码块（语法高亮）</li>
+                <li>✅ ➖ 水平分割线</li>
+              </ul>
+            </div>
+            
+            <div class="feature-category">
+              <h5>⚡ 高级功能</h5>
+              <ul>
+                <li>✅ 🎈 气泡菜单（选中文本时）</li>
+                <li>✅ 📋 浮动菜单（空行时）</li>
+                <li>✅ 📊 实时字符/词数统计</li>
+                <li>✅ 🔄 撤销/重做功能</li>
+                <li>✅ ⌨️ 键盘快捷键支持</li>
+              </ul>
+            </div>
+            
+            <div class="feature-category">
+              <h5>🔧 技术特性</h5>
+              <ul>
+                <li>✅ 📤 多种输出格式（HTML、Text、JSON）</li>
+                <li>✅ 🎨 可自定义工具栏和样式</li>
+                <li>✅ 📱 响应式设计</li>
+                <li>✅ ⚛️ Vue 3 响应式集成</li>
+                <li>✅ 🧩 模块化可扩展设计</li>
+              </ul>
+            </div>
+            
+            <div class="feature-category">
+              <h5>✨ 排版优化</h5>
+              <ul>
+                <li>✅ 自动符号转换（→ © ™）</li>
+                <li>✅ 智能引号处理</li>
+                <li>✅ 引用块美化</li>
+                <li>✅ 段落间距优化</li>
+                <li>✅ 出色的性能表现</li>
+              </ul>
+            </div>
+          </div>
         </div>
         
         <div class="keyboard-shortcuts">
@@ -156,44 +205,73 @@ export default {
       content2: '',
       content3: '',
       content4: '',
-      sampleHtml: `<h1>欢迎使用增强版 Tiptap 编辑器！</h1>
-<p>这是一个基于 <strong>ProseMirror</strong> 的现代富文本编辑器，现在支持更多功能！</p>
-<h2>新增特性</h2>
+      sampleHtml: `<h1 style="text-align: center">🎉 完整功能版 Tiptap 编辑器！</h1>
+<p>这是一个功能强大的富文本编辑器，包含<strong>所有免费功能</strong>！</p>
+
+<h2>📝 文本格式功能</h2>
 <ul>
   <li><strong>粗体</strong> 和 <em>斜体</em> 文本</li>
   <li><u>下划线</u> 和 <s>删除线</s> 格式</li>
-  <li><span style="color: #e74c3c">彩色文本</span> 支持</li>
-  <li><a href="https://tiptap.dev" class="tiptap-link">超链接功能</a></li>
+  <li><span style="color: #e74c3c">彩色文本</span> 和 <mark class="tiptap-highlight">背景高亮</mark></li>
+  <li>化学公式：H<sub>2</sub>O 和数学公式：E=mc<sup>2</sup></li>
   <li><code>行内代码</code> 高亮</li>
 </ul>
-<h3>表格功能演示</h3>
+
+<h2>📊 结构化内容</h2>
+<p>支持多种对齐方式：</p>
+<p style="text-align: left">⬅️ 左对齐文本</p>
+<p style="text-align: center">↔️ 居中对齐文本</p>
+<p style="text-align: right">➡️ 右对齐文本</p>
+
+<h3>任务列表示例</h3>
+<ul data-type="taskList">
+  <li data-type="taskItem" data-checked="true">✅ 实现基础文本格式</li>
+  <li data-type="taskItem" data-checked="true">✅ 添加表格功能</li>
+  <li data-type="taskItem" data-checked="false">⬜ 持续优化用户体验</li>
+</ul>
+
+<h3>代码块演示</h3>
+<pre class="tiptap-code-block"><code>function greetUser(name) {
+  console.log(\`Hello, \${name}!\`);
+  return \`Welcome to Tiptap Editor!\`;
+}</code></pre>
+
+<hr>
+
+<h3>功能对比表格</h3>
 <table>
   <tr>
-    <th>功能</th>
+    <th>功能类别</th>
+    <th>包含功能</th>
     <th>状态</th>
-    <th>描述</th>
   </tr>
   <tr>
-    <td>链接</td>
+    <td>文本格式</td>
+    <td>粗体、斜体、下划线、删除线、颜色、高亮</td>
     <td>✅ 完成</td>
-    <td>支持插入和编辑链接</td>
   </tr>
   <tr>
-    <td>图片</td>
+    <td>结构元素</td>
+    <td>标题、列表、任务列表、引用、代码块</td>
     <td>✅ 完成</td>
-    <td>支持图片上传和显示</td>
   </tr>
   <tr>
-    <td>表格</td>
+    <td>多媒体</td>
+    <td>链接、图片、表格</td>
     <td>✅ 完成</td>
-    <td>完整的表格编辑功能</td>
+  </tr>
+  <tr>
+    <td>高级功能</td>
+    <td>气泡菜单、浮动菜单、字符统计、对齐</td>
+    <td>✅ 完成</td>
   </tr>
 </table>
-<h3>引用示例</h3>
+
 <blockquote>
-  <p>升级后的 Tiptap 编辑器为用户提供了更丰富的编辑体验！</p>
+  <p>🚀 现在您拥有了一个功能完整、专业级的富文本编辑器！</p>
 </blockquote>
-<p>开始体验新功能吧！🚀</p>`,
+
+<p><a href="https://tiptap.dev" class="tiptap-link">了解更多 Tiptap 功能</a></p>`,
       sampleText: `欢迎使用 Tiptap 编辑器！
 
 这是一个基于 ProseMirror 的现代富文本编辑器。
@@ -460,6 +538,41 @@ export default {
 .feature-list h4 {
   color: #495057;
   margin-bottom: 15px;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.feature-category {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.feature-category h5 {
+  color: #495057;
+  margin-bottom: 10px;
+  font-size: 16px;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 5px;
+}
+
+.feature-category ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.feature-category li {
+  padding: 4px 0;
+  color: #495057;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .feature-list ul {
