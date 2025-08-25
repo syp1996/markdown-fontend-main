@@ -13,7 +13,12 @@
           placeholder="开始输入您的内容..."
           height="300px"
           format="html"
+          :document-id="autoSaveEnabled ? 'demo-doc-1' : null"
+          :enable-user-input-auto-save="autoSaveEnabled"
+          :user-inactivity-delay="3000"
           @change="onContent1Change"
+          @save-success="onSaveSuccess"
+          @save-error="onSaveError"
         />
         <div class="content-preview">
           <h4>HTML 预览:</h4>
@@ -85,6 +90,14 @@
           <button @click="copyHtml" class="btn btn-info">
             复制 HTML
           </button>
+          <button @click="toggleAutoSave" 
+                  :class="autoSaveEnabled ? 'btn btn-warning' : 'btn btn-secondary'">
+            {{ autoSaveEnabled ? '禁用自动保存' : '启用自动保存' }}
+          </button>
+        </div>
+        <div v-if="autoSaveEnabled" class="auto-save-notice">
+          <p>✅ 自动保存已启用：停止输入3秒后会自动保存第一个编辑器的内容</p>
+          <p>📝 注意：这只是演示功能，实际不会真正保存到服务器</p>
         </div>
       </div>
 
@@ -205,6 +218,7 @@ export default {
       content2: '',
       content3: '',
       content4: '',
+      autoSaveEnabled: false, // 自动保存演示开关
       sampleHtml: `<h1 style="text-align: center">🎉 完整功能版 Tiptap 编辑器！</h1>
 <p>这是一个功能强大的富文本编辑器，包含<strong>所有免费功能</strong>！</p>
 
@@ -374,6 +388,37 @@ export default {
           alert('复制失败');
         }
       }
+    },
+
+    // 切换自动保存功能
+    toggleAutoSave() {
+      this.autoSaveEnabled = !this.autoSaveEnabled;
+      const message = this.autoSaveEnabled ? '自动保存已启用' : '自动保存已禁用';
+      if (this.$message) {
+        this.$message.info(message);
+      } else {
+        alert(message);
+      }
+    },
+
+    // 处理自动保存成功（演示用）
+    onSaveSuccess(event) {
+      console.log('演示：自动保存成功', event);
+      if (this.$message) {
+        this.$message.success(`演示：文档 ${event.documentId} 已自动保存`);
+      } else {
+        alert(`演示：文档 ${event.documentId} 已自动保存`);
+      }
+    },
+
+    // 处理自动保存失败（演示用）
+    onSaveError(event) {
+      console.error('演示：自动保存失败', event);
+      if (this.$message) {
+        this.$message.error(`演示：文档 ${event.documentId} 自动保存失败`);
+      } else {
+        alert(`演示：文档 ${event.documentId} 自动保存失败`);
+      }
     }
   }
 }
@@ -526,6 +571,38 @@ export default {
 
 .btn-info:hover {
   background: #138496;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+}
+
+.btn-warning {
+  background: #ffc107;
+  color: #212529;
+}
+
+.btn-warning:hover {
+  background: #e0a800;
+}
+
+.auto-save-notice {
+  margin-top: 15px;
+  padding: 12px;
+  background: #d1ecf1;
+  border: 1px solid #bee5eb;
+  border-radius: 6px;
+}
+
+.auto-save-notice p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #0c5460;
 }
 
 .feature-list {

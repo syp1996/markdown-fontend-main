@@ -463,6 +463,16 @@ export default {
     documentId: {
       type: [String, Number],
       default: null
+    },
+    // 用户输入监听延迟时间（毫秒）
+    userInactivityDelay: {
+      type: Number,
+      default: 3000
+    },
+    // 是否启用用户输入监听自动保存
+    enableUserInputAutoSave: {
+      type: Boolean,
+      default: true
     }
   },
   emits: ['update:modelValue', 'change', 'focus', 'blur', 'save-success', 'save-error'],
@@ -477,6 +487,9 @@ export default {
       autoSaveTimer: null,
       isSaving: false,
       lastSavedContent: '',
+      // 用户输入监听相关状态
+      userInputTimer: null,
+      isUserActive: false,
     }
   },
   computed: {
@@ -499,6 +512,8 @@ export default {
     }
     // 清理自动保存定时器
     this.clearAutoSaveTimer()
+    // 清理用户输入监听定时器
+    this.clearUserInputTimer()
   },
   watch: {
     modelValue(newValue) {
@@ -614,12 +629,22 @@ export default {
           this.$emit('change', content)
           // 自动保存逻辑
           this.handleAutoSave(content)
+          // 用户输入监听逻辑
+          this.handleUserInput()
         },
         onFocus: () => {
           this.$emit('focus')
+          // 用户开始操作时重置计时器
+          this.handleUserInput()
         },
         onBlur: () => {
           this.$emit('blur')
+          // 用户离开编辑器时也可能需要保存
+          this.handleUserInput()
+        },
+        onTransaction: () => {
+          // 监听所有事务（包括选择、光标移动等）
+          this.handleUserInput()
         },
         editorProps: {
           attributes: {
@@ -1005,6 +1030,75 @@ export default {
     // 设置最后保存的内容（用于初始化或重置）
     setLastSavedContent(content) {
       this.lastSavedContent = content || this.getCurrentValue()
+    },
+
+    // 用户输入监听相关方法
+
+    // 处理用户输入事件
+    handleUserInput() {
+      // 如果未启用用户输入监听自动保存，则返回
+      if (!this.enableUserInputAutoSave) {
+        console.log('TiptapEditor: 用户输入监听自动保存未启用 (enableUserInputAutoSave = false)')
+        return
+      }
+
+      // 检查是否有文档ID
+      if (!this.documentId) {
+        console.warn('TiptapEditor: 未提供documentId，自动保存功能不可用')
+        return
+      }
+
+      // 标记用户正在活动
+      this.isUserActive = true
+      console.log(`TiptapEditor: 用户输入检测到，将在${this.userInactivityDelay}ms后检查自动保存`)
+      
+      // 清除之前的定时器
+      this.clearUserInputTimer()
+      
+      // 设置新的定时器，用户停止输入指定时间后执行保存
+      this.userInputTimer = setTimeout(() => {
+        this.onUserInactive()
+      }, this.userInactivityDelay)
+    },
+
+    // 用户停止操作时的回调
+    onUserInactive() {
+      this.isUserActive = false
+      console.log('TiptapEditor: 用户停止操作，检查是否需要自动保存')
+      
+      // 如果有文档ID且不在保存中，则执行自动保存
+      if (this.documentId && !this.isSaving) {
+        const currentContent = this.getCurrentValue()
+        
+        // 检查内容是否有变化
+        if (currentContent !== this.lastSavedContent) {
+          console.log(`TiptapEditor: 检测到内容变化，开始自动保存文档 (ID: ${this.documentId})`)
+          this.performAutoSave(currentContent)
+        } else {
+          console.log('TiptapEditor: 内容无变化，跳过自动保存')
+        }
+      } else {
+        if (!this.documentId) {
+          console.warn('TiptapEditor: 无法自动保存 - 缺少documentId')
+        }
+        if (this.isSaving) {
+          console.log('TiptapEditor: 正在保存中，跳过本次自动保存')
+        }
+      }
+    },
+
+    // 清除用户输入定时器
+    clearUserInputTimer() {
+      if (this.userInputTimer) {
+        clearTimeout(this.userInputTimer)
+        this.userInputTimer = null
+      }
+    },
+
+    // 强制触发自动保存（供外部调用）
+    forceSave() {
+      this.clearUserInputTimer()
+      this.onUserInactive()
     }
   }
 }

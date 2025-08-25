@@ -70,7 +70,12 @@
             placeholder="开始输入..."
             height="100%"
             :content="fileContent"
+            :document-id="selectedFile ? selectedFile.id : null"
+            :enable-user-input-auto-save="true"
+            :user-inactivity-delay="3000"
             @change="handleContentChange"
+            @save-success="onSaveSuccess"
+            @save-error="onSaveError"
           />
           </div>
           
@@ -641,6 +646,18 @@ export default {
       console.log('TiptapEditor内容变化:', newContent);
       // 这里可以实现保存逻辑或实时同步
       // 例如：自动保存、显示未保存状态等
+    },
+
+    // 处理自动保存成功
+    onSaveSuccess(event) {
+      console.log('自动保存成功:', event);
+      this.$message.success(`文档 ${event.documentId} 已自动保存`);
+    },
+
+    // 处理自动保存失败
+    onSaveError(event) {
+      console.error('自动保存失败:', event);
+      this.$message.error(`文档 ${event.documentId} 自动保存失败: ${event.error.message || '未知错误'}`);
     }
   }
 }
