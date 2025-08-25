@@ -417,6 +417,10 @@ export default {
       type: String,
       default: ''
     },
+    content: {
+      type: [String, Object],
+      default: ''
+    },
     placeholder: {
       type: String,
       default: '开始输入...'
@@ -477,12 +481,61 @@ export default {
       if (this.editor && newValue !== this.getCurrentValue()) {
         this.setContent(newValue)
       }
+    },
+    content: {
+      handler(newValue) {
+        if (this.editor && newValue) {
+          this.setContentFromProp(newValue)
+        }
+      },
+      deep: true,
+      immediate: true
     }
   },
   methods: {
+    getInitialContent() {
+      // 优先使用 content prop，然后是 modelValue
+      if (this.content) {
+        return this.extractContentValue(this.content)
+      }
+      return this.modelValue || ''
+    },
+
+    extractContentValue(content) {
+      // 如果content是对象，尝试提取其中的内容
+      if (typeof content === 'object' && content !== null) {
+        // 尝试不同的属性名
+        if (content.html) {
+          return content.html
+        } else if (content.markdown) {
+          return content.markdown
+        } else if (content.content) {
+          return content.content
+        } else if (content.text) {
+          return content.text
+        }
+        // 如果是数组或其他结构，转换为字符串
+        return JSON.stringify(content)
+      }
+      // 如果是字符串，直接返回
+      return content || ''
+    },
+
+    setContentFromProp(content) {
+      if (!this.editor) return
+      
+      const contentValue = this.extractContentValue(content)
+      const currentValue = this.getCurrentValue()
+      
+      // 只有当内容确实不同时才更新
+      if (contentValue && contentValue !== currentValue) {
+        this.setContent(contentValue)
+      }
+    },
+
     initEditor() {
       this.editor = new Editor({
-        content: this.modelValue,
+        content: this.getInitialContent(),
         extensions: [
           StarterKit,
           Placeholder.configure({

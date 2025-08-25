@@ -1,10 +1,5 @@
 <template>
   <div class="file-manager-page">
-    <div class="page-header">
-      <h2>📁 文件管理</h2>
-      <p>管理您的所有文档和文件</p>
-    </div>
-    
     <div class="toolbar">
       <div class="search-box">
         <input 
@@ -69,9 +64,17 @@
             <div class="loading-spinner"></div>
             <p>正在加载文件内容...</p>
           </div>
-          
+
           <div v-else-if="fileContent" class="content-display">
-            <!-- 使用统一文件编译器 -->
+            <TiptapEditor
+            placeholder="开始输入..."
+            height="600px"
+            :content="fileContent"
+            @change="handleContentChange"
+          />
+          </div>
+          
+          <!-- <div v-else-if="fileContent" class="content-display">
             <UniversalFileCompiler
               :content="fileContent"
               :fileName="selectedFile.title || selectedFile.name"
@@ -80,7 +83,7 @@
               @save="handleFileSave"
               @format-change="handleFormatChange"
             />
-          </div>
+          </div> -->
           
           <div v-else-if="error" class="error-message">
             <p>❌ 加载文件内容失败: {{ error }}</p>
@@ -149,12 +152,13 @@
 
 <script>
 import { deleteDocument, getDocumentById, getDocuments, uploadDocument } from '@/api/documents';
-import UniversalFileCompiler from '@/components/UniversalFileCompiler.vue';
-
+// import UniversalFileCompiler from '@/components/UniversalFileCompiler.vue';
+import TiptapEditor from '../../components/TiptapEditor.vue';
 export default {
   name: 'FileManager',
   components: {
-    UniversalFileCompiler
+    //   UniversalFileCompiler,
+      TiptapEditor
   },
   data() {
     return {
@@ -630,6 +634,13 @@ export default {
       
       // 这里可以实现格式转换逻辑
       // 例如：Markdown转HTML，HTML转纯文本等
+    },
+
+    // 处理TiptapEditor内容变化
+    handleContentChange(newContent) {
+      console.log('TiptapEditor内容变化:', newContent);
+      // 这里可以实现保存逻辑或实时同步
+      // 例如：自动保存、显示未保存状态等
     }
   }
 }
@@ -737,7 +748,7 @@ export default {
 .main-content {
   display: flex;
   gap: 20px;
-  height: calc(100vh - 200px);
+  height: calc(100vh - 100px);
   overflow: hidden;
 }
 
