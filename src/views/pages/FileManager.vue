@@ -754,7 +754,7 @@ export default {
 
 /* 左侧文件列表容器 */
 .file-list-container {
-  flex: 0 0 400px;
+  flex: 0 0 280px;
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -769,7 +769,7 @@ export default {
 .file-item {
   display: flex;
   align-items: center;
-  padding: 16px 20px;
+  padding: 12px 16px;
   border-bottom: 1px solid #f0f0f0;
   cursor: pointer;
   transition: background-color 0.3s;
@@ -789,20 +789,26 @@ export default {
 }
 
 .file-icon {
-  font-size: 24px;
-  margin-right: 16px;
-  width: 40px;
+  font-size: 20px;
+  margin-right: 12px;
+  width: 32px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .file-info {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .file-name {
   font-weight: 500;
   color: #17233d;
   margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .file-meta {
@@ -814,9 +820,10 @@ export default {
 
 .file-actions {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   opacity: 0;
   transition: opacity 0.3s;
+  flex-shrink: 0;
 }
 
 .file-item:hover .file-actions {
@@ -824,11 +831,11 @@ export default {
 }
 
 .file-action-btn {
-  padding: 6px;
+  padding: 4px;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 14px;
   border-radius: 4px;
   transition: background-color 0.3s;
 }
@@ -923,7 +930,7 @@ export default {
 .content-display {
   flex: 1;
   padding: 20px;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .markdown-content,

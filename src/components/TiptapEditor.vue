@@ -1056,6 +1056,13 @@ export default {
 .editor-content {
   overflow-y: auto;
   background: white;
+  /* 隐藏滚动条但保持滚动功能 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.editor-content::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* Tiptap 编辑器样式 */
@@ -1318,6 +1325,13 @@ export default {
   overflow-x: auto;
   line-height: 1.5;
   font-size: 14px;
+  /* 隐藏滚动条但保持滚动功能 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+:deep(.tiptap-code-block)::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 :deep(.tiptap-code-block pre) {
