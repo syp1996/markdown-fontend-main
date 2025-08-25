@@ -4,14 +4,20 @@
       <h1>项目管理</h1>
     </div>
     <div class="page-content">
-      <!-- 页面内容为空，等待后续开发 -->
+        <LexicalEditor/>
     </div>
   </div>
 </template>
 
 <script>
+import LexicalEditor from '@/components/LexicalEditor.vue';
+// import SimpleLexicalEditor from '@/components/SimpleLexicalEditor.vue';
 export default {
-  name: 'ProjectManagement',
+    name: 'ProjectManagement',
+    components: {
+        // SimpleLexicalEditor,
+        LexicalEditor
+    },
   data() {
     return {
       

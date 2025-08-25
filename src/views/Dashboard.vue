@@ -16,7 +16,7 @@ import MainContent from './components/MainContent.vue'
 // import Topbar from './components/Topbar.vue'
 
 export default {
-  name: 'Dashboard',
+  name: 'DashboardPage',
   components: {
       LeftSideBar,
     //   Topbar,

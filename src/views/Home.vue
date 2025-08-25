@@ -45,7 +45,7 @@
 import { login } from '@/api/user'
 
 export default {
-  name: 'Home',
+  name: 'HomePage',
   data() {
     return {
       loginForm: {

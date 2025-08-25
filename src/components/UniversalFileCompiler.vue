@@ -347,8 +347,8 @@ export default {
         this.editContent = convertedContent
         this.originalContent = convertedContent
         
-        // 更新文件格式
-        this.fileFormat = newFormat
+        // 发出文件格式更新事件
+        this.$emit('update:fileFormat', newFormat)
         
         // 发送格式转换事件
         this.$emit('format-change', {
