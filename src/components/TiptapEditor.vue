@@ -977,8 +977,10 @@ export default {
         
         // 准备保存数据
         const saveData = {
-          content: content,
-          updatedAt: new Date().toISOString()
+          content: {
+            html: content,
+            type: "html"
+          }
         }
 
         // 调用 API 保存文档
