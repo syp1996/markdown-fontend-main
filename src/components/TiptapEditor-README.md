@@ -4,9 +4,13 @@ TiptapEditor 是一个基于 Tiptap 的富文本编辑器 Vue 3 组件，提供�
 
 ## 功能特性
 
-- 🚀 **丰富的文本格式**: 支持粗体、斜体、删除线、行内代码
-- 📝 **标题支持**: H1-H3 多级标题
+- 🚀 **丰富的文本格式**: 支持粗体、斜体、下划线、删除线、行内代码
+- 🎨 **文本颜色**: 自定义文字颜色
+- 📝 **标题支持**: H1-H6 多级标题
 - 📋 **列表功能**: 有序列表和无序列表
+- 🔗 **超链接**: 插入和编辑链接
+- 🖼️ **图片功能**: 支持图片上传和URL插入
+- 📊 **表格功能**: 完整的表格创建和编辑（行列操作）
 - 💬 **引用块**: 支持引用文本格式
 - ↩️ **撤销/重做**: 完整的历史记录管理
 - 📱 **响应式设计**: 适配移动端和桌面端
@@ -135,6 +139,16 @@ export default {
 | *I* | 斜体 | 将选中文本设为斜体 |
 | ~~S~~ | 删除线 | 将选中文本添加删除线 |
 | `</>` | 行内代码 | 将选中文本标记为代码 |
+| <u>U</u> | 下划线 | 将选中文本添加下划线 |
+| 🎨 | 文字颜色 | 设置文本颜色 |
+| 🔗 链接 | 超链接 | 插入或编辑链接 |
+| 🚫 取消链接 | 移除链接 | 移除选中文本的链接 |
+| 🖼️ 图片 | 插入图片 | 通过URL插入图片 |
+| 📁 上传 | 上传图片 | 上传本地图片文件 |
+| 📊 表格 | 插入表格 | 创建3x3表格 |
+| ➕列 | 插入列 | 在当前列前插入新列 |
+| ➕行 | 插入行 | 在当前行前插入新行 |
+| 🗑️表格 | 删除表格 | 删除整个表格 |
 | H1/H2/H3 | 标题 | 设置不同级别的标题 |
 | • 列表 | 无序列表 | 创建项目符号列表 |
 | 1. 列表 | 有序列表 | 创建编号列表 |
@@ -167,7 +181,9 @@ export default {
 
 ## 注意事项
 
-1. **依赖要求**: 需要安装 `@tiptap/core`、`@tiptap/vue-3`、`@tiptap/starter-kit`、`@tiptap/extension-placeholder`
+1. **依赖要求**: 需要安装以下扩展包
+   - 基础: `@tiptap/core`、`@tiptap/vue-3`、`@tiptap/starter-kit`、`@tiptap/extension-placeholder`
+   - 新功能: `@tiptap/extension-link`、`@tiptap/extension-image`、`@tiptap/extension-table`、`@tiptap/extension-table-row`、`@tiptap/extension-table-cell`、`@tiptap/extension-table-header`、`@tiptap/extension-underline`、`@tiptap/extension-color`、`@tiptap/extension-text-style`
 2. **Vue 版本**: 仅支持 Vue 3
 3. **浏览器兼容性**: 支持现代浏览器，IE 不支持
 4. **性能**: 适合中等规模的文档编辑，大型文档建议考虑分页或虚拟化

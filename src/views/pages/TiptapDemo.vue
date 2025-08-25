@@ -93,9 +93,13 @@
         <div class="feature-list">
           <h4>支持的功能：</h4>
           <ul>
-            <li>✅ 丰富的文本格式化（加粗、斜体、删除线、行内代码）</li>
-            <li>✅ 多级标题支持（H1-H3）</li>
+            <li>✅ 丰富的文本格式化（加粗、斜体、<u>下划线</u>、删除线、行内代码）</li>
+            <li>✅ <span style="color: #e74c3c">文本颜色</span> 自定义</li>
+            <li>✅ 多级标题支持（H1-H6）</li>
             <li>✅ 列表功能（有序列表、无序列表）</li>
+            <li>✅ 🔗 <strong>超链接</strong> 插入和编辑</li>
+            <li>✅ 🖼️ <strong>图片上传</strong> 和显示</li>
+            <li>✅ 📊 <strong>表格创建</strong> 和编辑（行列操作）</li>
             <li>✅ 引用块支持</li>
             <li>✅ 撤销/重做功能</li>
             <li>✅ 多种输出格式（HTML、Text、JSON）</li>
@@ -152,20 +156,44 @@ export default {
       content2: '',
       content3: '',
       content4: '',
-      sampleHtml: `<h1>欢迎使用 Tiptap 编辑器！</h1>
-<p>这是一个基于 <strong>ProseMirror</strong> 的现代富文本编辑器。</p>
-<h2>主要特性</h2>
+      sampleHtml: `<h1>欢迎使用增强版 Tiptap 编辑器！</h1>
+<p>这是一个基于 <strong>ProseMirror</strong> 的现代富文本编辑器，现在支持更多功能！</p>
+<h2>新增特性</h2>
 <ul>
-  <li><strong>模块化设计</strong> - 按需引入功能</li>
-  <li><em>丰富的扩展</em> - 支持各种文本格式</li>
-  <li><s>传统编辑器的限制</s> - 已被克服</li>
-  <li><code>开发者友好</code> - 易于集成和定制</li>
+  <li><strong>粗体</strong> 和 <em>斜体</em> 文本</li>
+  <li><u>下划线</u> 和 <s>删除线</s> 格式</li>
+  <li><span style="color: #e74c3c">彩色文本</span> 支持</li>
+  <li><a href="https://tiptap.dev" class="tiptap-link">超链接功能</a></li>
+  <li><code>行内代码</code> 高亮</li>
 </ul>
+<h3>表格功能演示</h3>
+<table>
+  <tr>
+    <th>功能</th>
+    <th>状态</th>
+    <th>描述</th>
+  </tr>
+  <tr>
+    <td>链接</td>
+    <td>✅ 完成</td>
+    <td>支持插入和编辑链接</td>
+  </tr>
+  <tr>
+    <td>图片</td>
+    <td>✅ 完成</td>
+    <td>支持图片上传和显示</td>
+  </tr>
+  <tr>
+    <td>表格</td>
+    <td>✅ 完成</td>
+    <td>完整的表格编辑功能</td>
+  </tr>
+</table>
 <h3>引用示例</h3>
 <blockquote>
-  <p>Tiptap 为开发者提供了强大而灵活的富文本编辑解决方案。</p>
+  <p>升级后的 Tiptap 编辑器为用户提供了更丰富的编辑体验！</p>
 </blockquote>
-<p>开始体验吧！🚀</p>`,
+<p>开始体验新功能吧！🚀</p>`,
       sampleText: `欢迎使用 Tiptap 编辑器！
 
 这是一个基于 ProseMirror 的现代富文本编辑器。

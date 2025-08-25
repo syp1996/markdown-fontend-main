@@ -33,6 +33,97 @@
       >
         &lt;/&gt;
       </button>
+      <button 
+        @click="editor && editor.chain().focus().toggleUnderline().run()"
+        :class="{ active: editor && editor.isActive('underline') }"
+        class="format-btn"
+        title="下划线"
+      >
+        <u>U</u>
+      </button>
+      <div class="separator"></div>
+      <!-- 文本颜色 -->
+      <div class="color-picker-wrapper">
+        <label class="format-btn color-btn" title="文字颜色">
+          🎨
+          <input 
+            type="color" 
+            @change="setTextColor"
+            class="color-input"
+            value="#000000"
+          />
+        </label>
+      </div>
+      <div class="separator"></div>
+      <!-- 链接功能 -->
+      <button 
+        @click="setLink"
+        :class="{ active: editor && editor.isActive('link') }"
+        class="format-btn"
+        title="插入链接"
+      >
+        🔗 链接
+      </button>
+      <button 
+        @click="unsetLink"
+        :disabled="!editor || !editor.isActive('link')"
+        class="format-btn"
+        title="移除链接"
+      >
+        🚫 取消链接
+      </button>
+      <div class="separator"></div>
+      <!-- 图片功能 -->
+      <button 
+        @click="addImage"
+        class="format-btn"
+        title="插入图片"
+      >
+        🖼️ 图片
+      </button>
+      <label class="format-btn" title="上传图片">
+        📁 上传
+        <input 
+          type="file" 
+          @change="uploadImage"
+          accept="image/*"
+          class="file-input"
+          style="display: none;"
+        />
+      </label>
+      <div class="separator"></div>
+      <!-- 表格功能 -->
+      <button 
+        @click="insertTable"
+        class="format-btn"
+        title="插入表格"
+      >
+        📊 表格
+      </button>
+      <button 
+        @click="addColumnBefore"
+        :disabled="!editor || !editor.isActive('table')"
+        class="format-btn"
+        title="插入列"
+      >
+        ➕列
+      </button>
+      <button 
+        @click="addRowBefore"
+        :disabled="!editor || !editor.isActive('table')"
+        class="format-btn"
+        title="插入行"
+      >
+        ➕行
+      </button>
+      <button 
+        @click="deleteTable"
+        :disabled="!editor || !editor.isActive('table')"
+        class="format-btn"
+        title="删除表格"
+      >
+        🗑️表格
+      </button>
       <div class="separator"></div>
       <button 
         @click="editor && editor.chain().focus().toggleHeading({ level: 1 }).run()"
@@ -117,7 +208,16 @@
 </template>
 
 <script>
+import Color from '@tiptap/extension-color'
+import Image from '@tiptap/extension-image'
+import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
+import Table from '@tiptap/extension-table'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import TableRow from '@tiptap/extension-table-row'
+import TextStyle from '@tiptap/extension-text-style'
+import Underline from '@tiptap/extension-underline'
 import StarterKit from '@tiptap/starter-kit'
 import { Editor, EditorContent } from '@tiptap/vue-3'
 
@@ -175,24 +275,30 @@ export default {
       this.editor = new Editor({
         content: this.modelValue,
         extensions: [
-          StarterKit.configure({
-            // 配置 StarterKit 扩展
-            heading: {
-              levels: [1, 2, 3, 4, 5, 6],
-            },
-            bulletList: {
-              keepMarks: true,
-              keepAttributes: false,
-            },
-            orderedList: {
-              keepMarks: true,
-              keepAttributes: false,
-            },
-          }),
+          StarterKit,
           Placeholder.configure({
             placeholder: this.placeholder,
             emptyEditorClass: 'is-editor-empty',
           }),
+          // 基础文本样式
+          TextStyle,
+          Underline,
+          Color.configure({
+            types: ['textStyle'],
+          }),
+          // 链接和图片
+          Link.configure({
+            openOnClick: false,
+            HTMLAttributes: {
+              class: 'tiptap-link',
+            },
+          }),
+          Image,
+          // 表格扩展
+          Table,
+          TableRow,
+          TableHeader,
+          TableCell,
         ],
         onUpdate: () => {
           const content = this.getCurrentValue()
@@ -359,6 +465,83 @@ export default {
       if (this.editor) {
         this.editor.chain().focus().redo().run()
       }
+    },
+
+    // 新增功能方法
+
+    // 下划线
+    toggleUnderline() {
+      if (this.editor) {
+        this.editor.chain().focus().toggleUnderline().run()
+      }
+    },
+
+    // 文本颜色
+    setTextColor(event) {
+      const color = event.target.value
+      if (this.editor) {
+        this.editor.chain().focus().setColor(color).run()
+      }
+    },
+
+    // 链接功能
+    setLink() {
+      const url = window.prompt('请输入链接地址:')
+      if (url && this.editor) {
+        this.editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+      }
+    },
+
+    unsetLink() {
+      if (this.editor) {
+        this.editor.chain().focus().unsetLink().run()
+      }
+    },
+
+    // 图片功能
+    addImage() {
+      const url = window.prompt('请输入图片地址:')
+      if (url && this.editor) {
+        this.editor.chain().focus().setImage({ src: url }).run()
+      }
+    },
+
+    uploadImage(event) {
+      const file = event.target.files[0]
+      if (file && this.editor) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          this.editor.chain().focus().setImage({ src: e.target.result }).run()
+        }
+        reader.readAsDataURL(file)
+        // 清空input，允许重复选择同一文件
+        event.target.value = ''
+      }
+    },
+
+    // 表格功能
+    insertTable() {
+      if (this.editor) {
+        this.editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+      }
+    },
+
+    addColumnBefore() {
+      if (this.editor) {
+        this.editor.chain().focus().addColumnBefore().run()
+      }
+    },
+
+    addRowBefore() {
+      if (this.editor) {
+        this.editor.chain().focus().addRowBefore().run()
+      }
+    },
+
+    deleteTable() {
+      if (this.editor) {
+        this.editor.chain().focus().deleteTable().run()
+      }
     }
   }
 }
@@ -416,6 +599,31 @@ export default {
   height: 20px;
   background: #ddd;
   margin: 0 8px;
+}
+
+/* 颜色选择器样式 */
+.color-picker-wrapper {
+  position: relative;
+}
+
+.color-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.color-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* 文件上传隐藏样式 */
+.file-input {
+  display: none;
 }
 
 .editor-content {
@@ -553,6 +761,82 @@ export default {
 
 :deep(.tiptap-editor-instance blockquote p) {
   margin: 4px 0;
+}
+
+/* 下划线样式 */
+:deep(.tiptap-editor-instance u) {
+  text-decoration: underline;
+}
+
+/* 链接样式 */
+:deep(.tiptap-link) {
+  color: #007acc;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+:deep(.tiptap-link:hover) {
+  color: #005fa3;
+  text-decoration: none;
+}
+
+/* 图片样式 */
+:deep(.tiptap-image) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 8px 0;
+  display: block;
+}
+
+/* 表格样式 */
+:deep(.tiptap-editor-instance table) {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 16px 0;
+  overflow: hidden;
+  border: 1px solid #ddd;
+}
+
+:deep(.tiptap-editor-instance table td),
+:deep(.tiptap-editor-instance table th) {
+  min-width: 1em;
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+  background-color: white;
+}
+
+:deep(.tiptap-editor-instance table th) {
+  font-weight: bold;
+  background-color: #f5f5f5;
+  text-align: left;
+}
+
+:deep(.tiptap-editor-instance table .selectedCell:after) {
+  z-index: 2;
+  position: absolute;
+  content: "";
+  left: 0; right: 0; top: 0; bottom: 0;
+  background: rgba(200, 200, 255, 0.4);
+  pointer-events: none;
+}
+
+:deep(.tiptap-editor-instance table .column-resize-handle) {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  background-color: #adf;
+  pointer-events: none;
+}
+
+:deep(.tiptap-editor-instance table p) {
+  margin: 0;
 }
 
 /* 响应式设计 */
