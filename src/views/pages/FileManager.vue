@@ -68,7 +68,7 @@
           <div v-else-if="fileContent" class="content-display">
             <TiptapEditor
             placeholder="开始输入..."
-            height="600px"
+            height="100%"
             :content="fileContent"
             @change="handleContentChange"
           />
@@ -851,6 +851,8 @@ export default {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .no-file-selected {
@@ -930,7 +932,15 @@ export default {
 .content-display {
   flex: 1;
   padding: 20px;
-  overflow: hidden;
+  overflow-y: auto;
+  height: 100%;
+  /* 隐藏滚动条但保持滚动功能 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.content-display::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .markdown-content,
