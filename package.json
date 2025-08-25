@@ -21,6 +21,10 @@
     "@lexical/selection": "^0.34.0",
     "@lexical/table": "^0.34.0",
     "@lexical/utils": "^0.34.0",
+    "@tiptap/core": "^3.3.0",
+    "@tiptap/extension-placeholder": "^3.3.0",
+    "@tiptap/starter-kit": "^3.3.0",
+    "@tiptap/vue-3": "^3.3.0",
     "@vue/compat": "^3.5.19",
     "axios": "^0.27.2",
     "core-js": "^3.8.3",
@@ -32,12 +36,12 @@
     "vuex": "^4.1.0"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.22.0",
     "@vue/cli-plugin-babel": "~5.0.8",
     "@vue/cli-plugin-eslint": "~5.0.8",
     "@vue/cli-plugin-router": "~5.0.8",
     "@vue/cli-plugin-vuex": "~5.0.8",
     "@vue/cli-service": "~5.0.8",
-    "@babel/eslint-parser": "^7.22.0",
     "eslint": "^8.50.0",
     "eslint-plugin-vue": "^9.17.0"
   },

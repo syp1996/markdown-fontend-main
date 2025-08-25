@@ -7,6 +7,7 @@ import HomePage from '../views/pages/Home.vue'
 import LexicalDemo from '../views/pages/LexicalDemo.vue'
 import ProjectManagement from '../views/pages/ProjectManagement.vue'
 import SystemSettings from '../views/pages/SystemSettings.vue'
+import TiptapDemo from '../views/pages/TiptapDemo.vue'
 
 const routes = [
   {
@@ -54,6 +55,11 @@ const routes = [
         path: 'lexical-demo',
         name: 'LexicalDemo',
         component: LexicalDemo
+      },
+      {
+        path: 'tiptap-demo',
+        name: 'TiptapDemo',
+        component: TiptapDemo
       }
     ]
   }
