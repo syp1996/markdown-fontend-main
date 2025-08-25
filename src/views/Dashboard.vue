@@ -122,6 +122,12 @@ export default {
           // 文件列表处理
           this.$router.push('/dashboard/file-manager')
           break
+        case 'project-management':
+          this.$router.push('/dashboard/project-management')
+          break
+        case 'document-editor':
+          this.$router.push('/dashboard/document-editor')
+          break
         case 'settings':
           this.$router.push('/dashboard/settings')
           break
