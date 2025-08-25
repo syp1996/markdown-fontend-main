@@ -376,6 +376,7 @@
 </template>
 
 <script>
+import { updateDocument } from '@/api/documents'
 import Placeholder from '@tiptap/extension-placeholder'
 import StarterKit from '@tiptap/starter-kit'
 import { Editor, EditorContent } from '@tiptap/vue-3'
@@ -449,9 +450,22 @@ export default {
       type: String,
       default: 'html',
       validator: value => ['html', 'text', 'json'].includes(value)
+    },
+    // 自动保存相关属性
+    autoSave: {
+      type: Boolean,
+      default: false
+    },
+    autoSaveDelay: {
+      type: Number,
+      default: 3000
+    },
+    documentId: {
+      type: [String, Number],
+      default: null
     }
   },
-  emits: ['update:modelValue', 'change', 'focus', 'blur'],
+  emits: ['update:modelValue', 'change', 'focus', 'blur', 'save-success', 'save-error'],
   data() {
     return {
       editor: null,
@@ -459,6 +473,10 @@ export default {
       floatingMenuEditor: null,
       bubbleMenuVisible: false,
       floatingMenuVisible: false,
+      // 自动保存相关状态
+      autoSaveTimer: null,
+      isSaving: false,
+      lastSavedContent: '',
     }
   },
   computed: {
@@ -470,11 +488,17 @@ export default {
   },
   mounted() {
     this.initEditor()
+    // 初始化自动保存状态
+    this.$nextTick(() => {
+      this.setLastSavedContent()
+    })
   },
   beforeUnmount() {
     if (this.editor) {
       this.editor.destroy()
     }
+    // 清理自动保存定时器
+    this.clearAutoSaveTimer()
   },
   watch: {
     modelValue(newValue) {
@@ -588,6 +612,8 @@ export default {
           const content = this.getCurrentValue()
           this.$emit('update:modelValue', content)
           this.$emit('change', content)
+          // 自动保存逻辑
+          this.handleAutoSave(content)
         },
         onFocus: () => {
           this.$emit('focus')
@@ -890,6 +916,95 @@ export default {
       if (this.editor) {
         this.editor.chain().focus().setHorizontalRule().run()
       }
+    },
+
+    // 自动保存相关方法
+    
+    // 处理自动保存逻辑
+    handleAutoSave(content) {
+      // 如果未启用自动保存或没有文档ID，则不执行自动保存
+      if (!this.autoSave || !this.documentId) {
+        return
+      }
+
+      // 如果内容没有变化，则不执行保存
+      if (content === this.lastSavedContent || this.isSaving) {
+        return
+      }
+
+      // 清除之前的定时器
+      this.clearAutoSaveTimer()
+
+      // 设置新的定时器
+      this.autoSaveTimer = setTimeout(() => {
+        this.performAutoSave(content)
+      }, this.autoSaveDelay)
+    },
+
+    // 执行自动保存
+    async performAutoSave(content) {
+      if (this.isSaving || !this.documentId) {
+        return
+      }
+
+      try {
+        this.isSaving = true
+        
+        // 准备保存数据
+        const saveData = {
+          content: content,
+          updatedAt: new Date().toISOString()
+        }
+
+        // 调用 API 保存文档
+        await updateDocument(this.documentId, saveData)
+        
+        // 更新最后保存的内容
+        this.lastSavedContent = content
+        
+        // 触发保存成功事件
+        this.$emit('save-success', {
+          documentId: this.documentId,
+          content: content,
+          timestamp: new Date().toISOString()
+        })
+
+        console.log('文档自动保存成功')
+        
+      } catch (error) {
+        console.error('自动保存失败:', error)
+        
+        // 触发保存失败事件
+        this.$emit('save-error', {
+          documentId: this.documentId,
+          error: error,
+          content: content,
+          timestamp: new Date().toISOString()
+        })
+        
+      } finally {
+        this.isSaving = false
+      }
+    },
+
+    // 清除自动保存定时器
+    clearAutoSaveTimer() {
+      if (this.autoSaveTimer) {
+        clearTimeout(this.autoSaveTimer)
+        this.autoSaveTimer = null
+      }
+    },
+
+    // 手动触发保存
+    manualSave() {
+      const content = this.getCurrentValue()
+      this.clearAutoSaveTimer()
+      this.performAutoSave(content)
+    },
+
+    // 设置最后保存的内容（用于初始化或重置）
+    setLastSavedContent(content) {
+      this.lastSavedContent = content || this.getCurrentValue()
     }
   }
 }
