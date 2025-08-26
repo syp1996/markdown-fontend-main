@@ -65,7 +65,7 @@
             <p>正在加载文件内容...</p>
           </div>
 
-          <div v-else-if="fileContent" class="content-display">
+          <div  class="content-display">
             <TiptapEditor
             placeholder="开始输入..."
             height="100%"
@@ -90,9 +90,9 @@
             />
           </div> -->
           
-          <div v-else-if="error" class="error-message">
+          <!-- <div v-else-if="error" class="error-message">
             <p>❌ 加载文件内容失败: {{ error }}</p>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
@@ -199,23 +199,58 @@ export default {
       )
     }
   },
-  methods: {
-    initData() {
-      getDocuments().then(res => {
-        this.files = res.items
-      })
+    methods: {
+        async Refresh() {
+            await this.initData()
+        },
+    async initData() {
+      try {
+        const res = await getDocuments()
+        // 兼容多种返回结构 { items: [...] } 或 { data: [...] } 或 直接数组
+        this.files = (res && (res.items || res.data || res.list)) || []
+        return this.files
+      } catch (e) {
+        console.error('获取文档列表失败:', e)
+        this.$message.error('获取文档列表失败')
+        this.files = []
+        return []
+      }
     },
-      createNewFile() {
-        createDocument({
-          title: '新建文件',
-        }).then(res => {
-            if(res.code === 200) {
-                this.$message.success('新建文件成功')
-                this.initData()
-            }else{
-                this.$message.error('新建文件失败')
+      async createNewFile() {
+        try {
+          const res = await createDocument({
+            title: '新建文件',
+          })
+          if(res && (res.code === 200 || res.code === 0 || !('code' in res))) {
+            const created = (res && (res.data || res.item || res.result)) || res
+            const createdId = created && created.id
+            const createdTitle = (created && (created.title || created.name)) || '新建文件'
+            this.$message.success('新建文件成功')
+            const ensured = await this.ensureListRefreshed(createdId, createdTitle)
+            if (!ensured) {
+              this.$message.warning('列表刷新可能延迟，已为您重试刷新')
             }
+          } else {
+            this.$message.error('新建文件失败')
+          }
+        } catch (error) {
+          console.error('新建文件失败:', error)
+          this.$message.error('新建文件失败')
+        }
+    },
+    async ensureListRefreshed(createdId, createdTitle) {
+      const maxAttempts = 5
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        await this.Refresh()
+        const exists = this.files && this.files.some(f => {
+          if (createdId) return f.id === createdId
+          return (f.title === createdTitle) || (f.name === createdTitle)
         })
+        if (exists) return true
+        // 逐步退避等待
+        await new Promise(r => setTimeout(r, attempt * 200))
+      }
+      return false
     },
     
     // 测试连接状态
