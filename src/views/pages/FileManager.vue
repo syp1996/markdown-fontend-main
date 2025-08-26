@@ -156,7 +156,7 @@
 </template>
 
 <script>
-import { deleteDocument, getDocumentById, getDocuments, uploadDocument } from '@/api/documents';
+import { createDocument, deleteDocument, getDocumentById, getDocuments, uploadDocument } from '@/api/documents';
 // import UniversalFileCompiler from '@/components/UniversalFileCompiler.vue';
 import TiptapEditor from '../../components/TiptapEditor.vue';
 export default {
@@ -205,8 +205,17 @@ export default {
         this.files = res.items
       })
     },
-    createNewFile() {
-      this.$message.info('新建文件功能开发中...')
+      createNewFile() {
+        createDocument({
+          title: '新建文件',
+        }).then(res => {
+            if(res.code === 200) {
+                this.$message.success('新建文件成功')
+                this.initData()
+            }else{
+                this.$message.error('新建文件失败')
+            }
+        })
     },
     
     // 测试连接状态
