@@ -177,7 +177,10 @@ export default {
       showUpload: false,
       selectedFiles: [],
       isDragOver: false,
-      uploading: false
+      uploading: false,
+      // 并发控制
+      requestController: null,
+      loadRequestId: 0
     }
   },
   created() {
@@ -451,26 +454,40 @@ export default {
     },
     
     async handleFileClick(file) {
-      // 设置选中的文件
+      // 增加请求令牌，保障顺序正确
+      this.loadRequestId += 1
+      const currentId = this.loadRequestId
+      
+      // 设置选中的文件（立即反馈UI）
       this.selectedFile = file
       this.fileContent = null
       this.error = null
       
-      // 获取文件内容
-      await this.loadFileContent(file.id)
+      // 获取文件内容（并发安全）
+      await this.loadFileContent(file.id, currentId)
     },
     
-    async loadFileContent(documentId) {
+    async loadFileContent(documentId, requestId) {
+      // 取消前一个未完成的请求
+      try {
+        if (this.requestController) {
+          this.requestController.abort()
+        }
+      } catch (e) { console.debug('Abort previous request error:', e) }
+      
+      this.requestController = new AbortController()
+      const signal = this.requestController.signal
       this.loading = true
       this.error = null
       
       try {
-        // 尝试调用真实API
-        const response = await getDocumentById(documentId)
+        const response = await getDocumentById(documentId, { signal })
+        // 若已产生新的点击请求，则丢弃本次结果
+        if (requestId !== this.loadRequestId) return
+        
         this.fileContent = response.content
         console.log('文件内容加载成功:', this.fileContent)
         
-        // 调试信息：显示内容格式
         if (this.fileContent) {
           console.log('内容格式检查:')
           console.log('- 是否有HTML内容:', !!this.fileContent.html)
@@ -478,13 +495,19 @@ export default {
           console.log('- 内容类型:', typeof this.fileContent)
           console.log('- 内容键值:', Object.keys(this.fileContent))
         }
-        
       } catch (err) {
+        // 请求被取消：静默处理
+        if (err && (err.code === 'ERR_CANCELED' || err.name === 'CanceledError')) {
+          return
+        }
         console.error('加载文件内容失败:', err)
+        if (requestId !== this.loadRequestId) return
         this.error = err.message || '加载文件内容失败'
         this.$message.error('加载文件内容失败')
       } finally {
-        this.loading = false
+        if (requestId === this.loadRequestId) {
+          this.loading = false
+        }
       }
     },
     

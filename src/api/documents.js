@@ -17,11 +17,12 @@ export function getDocuments(params) {
   })
 }
 
-// 获取单个文档
-export function getDocumentById(id) {
+// 获取单个文档（支持传入 axios 配置，如 signal 以便取消请求）
+export function getDocumentById(id, config = {}) {
   return request({
     url: `/documents/${id}`,
-    method: 'get'
+    method: 'get',
+    ...config
   })
 }
 
