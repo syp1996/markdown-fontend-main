@@ -39,10 +39,24 @@
             </div>
             
             <div class="file-info">
-              <div class="file-name">{{ file.title }}</div>
+              <div v-if="editingId !== file.id" class="file-name">{{ file.title }}</div>
+              <input 
+                v-else
+                :ref="'edit-'+file.id"
+                class="file-name-input"
+                type="text"
+                v-model="editingTitle"
+                @click.stop
+                @blur="saveTitle(file)"
+                @keydown.enter.prevent="saveTitle(file)"
+                @keydown.esc.prevent="cancelEdit"
+              />
             </div>
             
             <div class="file-actions">
+              <button class="file-action-btn" @click.stop="startEdit(file)" title="修改">
+                ✏️
+              </button>
               <button class="file-action-btn" @click.stop="deleteFile(file)" title="删除">
                 🗑️
               </button>
@@ -156,7 +170,7 @@
 </template>
 
 <script>
-import { createDocument, deleteDocument, getDocumentById, getDocuments, uploadDocument } from '@/api/documents';
+import { createDocument, deleteDocument, getDocumentById, getDocuments, updateDocument, uploadDocument } from '@/api/documents';
 // import UniversalFileCompiler from '@/components/UniversalFileCompiler.vue';
 import TiptapEditor from '../../components/TiptapEditor.vue';
 export default {
@@ -173,6 +187,9 @@ export default {
       loading: false,
       error: null,
       files: [],
+      // 重命名相关
+      editingId: null,
+      editingTitle: '',
       // 上传相关状态
       showUpload: false,
       selectedFiles: [],
@@ -203,6 +220,44 @@ export default {
     }
   },
     methods: {
+        startEdit(file) {
+            this.editingId = file.id
+            this.editingTitle = file.title || ''
+            this.$nextTick(() => {
+                const input = this.$refs['edit-'+file.id]
+                if (input && input.focus) input.focus()
+                if (input && input.select) input.select()
+            })
+        },
+        cancelEdit() {
+            this.editingId = null
+            this.editingTitle = ''
+        },
+        async saveTitle(file) {
+            const newTitle = (this.editingTitle || '').trim()
+            const oldTitle = file.title || ''
+            this.editingId = null
+            this.editingTitle = ''
+            if (!newTitle || newTitle === oldTitle) {
+                return
+            }
+            try {
+                await updateDocument(file.id, { title: newTitle })
+                // 本地更新以增强即时反馈
+                const target = this.files.find(f => f.id === file.id)
+                if (target) target.title = newTitle
+                // 如果当前选中文件是该文件，同步更新
+                if (this.selectedFile && this.selectedFile.id === file.id) {
+                    this.selectedFile = { ...this.selectedFile, title: newTitle }
+                }
+                // 后台保证一致性，刷新列表
+                await this.Refresh()
+                this.$message.success('标题已更新')
+            } catch (e) {
+                console.error('更新标题失败:', e)
+                this.$message.error('更新标题失败')
+            }
+        },
         async Refresh() {
             await this.initData()
         },
