@@ -7,16 +7,16 @@
     <nav class="sidebar-menu">
       <!-- AI助手 -->
       <div class="menu-item" :class="{ active: activeMenu === 'home' }" @click="handleMenuSelect('home')">
-        <i class="menu-icon">🤖</i>
+        <!-- <i class="menu-icon">🤖</i> -->
         <span class="menu-title">首页</span>
       </div>
       
       <!-- 文件管理 -->
       <div class="menu-group">
         <div class="menu-header" @click="toggleSubmenu('files')">
-          <i class="menu-icon">📁</i>
+          <img class="menu-icon" src="@/icons/files.png" style="width: 24px; height: 24px;" />
           <span class="menu-title">文件管理</span>
-          <i class="submenu-arrow" :class="{ 'expanded': openSubmenus.includes('files') }">▶</i>
+          <img class="submenu-arrow" :class="{ 'expanded': openSubmenus.includes('files') }" src="@/icons/CaretDown.png" style="width: 12px; height: 12px;" />
         </div>
         <div class="submenu" :class="{ 'expanded': openSubmenus.includes('files') }">
           <div 
@@ -93,6 +93,7 @@ export default {
 
 .sidebar-menu {
   width: 100%;
+  background-color: #FFFFFF;
   flex: 1;
   overflow-y: auto; /* 添加垂直滚动 */
   overflow-x: hidden; /* 隐藏水平滚动 */
@@ -120,24 +121,25 @@ export default {
 .menu-item {
   height: 50px;
   line-height: 50px;
-  padding: 0 20px;
-  color: #bfcbd9;
+  padding: 0 24px;
+  color: rgba(0, 0, 0, 0.75);
   cursor: pointer;
   border-left: 3px solid transparent;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
+  font-size: 16px;
 }
 
-.menu-item:hover {
+/* .menu-item:hover {
   background-color: #263445;
   border-left-color: #409EFF;
-}
+} */
 
 .menu-item.active {
-  background-color: #263445;
+  background-color: rgba(64, 158, 255, 0.05);
   border-left-color: #409EFF;
-  color: #409EFF;
+  color: rgba(64, 158, 255, 0.95);
 }
 
 /* 菜单组样式 */
@@ -148,20 +150,21 @@ export default {
 .menu-header {
   height: 50px;
   line-height: 50px;
-  padding: 0 20px;
-  color: #bfcbd9;
+  padding: 0 24px;
+  color: rgba(0, 0, 0, 0.75);
   cursor: pointer;
   border-left: 3px solid transparent;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  font-size: 16px;
 }
 
-.menu-header:hover {
+/* .menu-header:hover {
   background-color: #263445;
   border-left-color: #409EFF;
-}
+} */
 
 .submenu-arrow {
   font-size: 12px;
@@ -204,12 +207,13 @@ export default {
 }
 
 .submenu-item {
+  font-size: 16px;
+  background-color: #FFFFFF;
   height: 45px;
   line-height: 45px;
   padding: 0 20px 0 50px;
-  color: #bfcbd9;
+  color: rgba(0, 0, 0, 0.55);
   cursor: pointer;
-  font-size: 13px;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
@@ -219,12 +223,12 @@ export default {
 }
 
 .submenu-item:hover {
-  background-color: #263445;
+  background-color: #FDFDFD;
   color: #409EFF;
 }
 
 .submenu-item.active {
-  background-color: #263445;
+    background-color: #FDFDFD;
   color: #409EFF;
 }
 

@@ -48,9 +48,11 @@ body {
 
 .el-menu-item {
   color: white !important;
+  font-weight: 600;
 }
 
-.el-menu-item:hover {
+/* .el-menu-item:hover {
+
   background-color: rgba(255, 255, 255, 0.1) !important;
-}
+} */
 </style>

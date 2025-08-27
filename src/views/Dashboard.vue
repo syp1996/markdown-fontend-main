@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard">
-    <!-- <Topbar class="top-bar" /> -->
+    <Topbar class="top-bar" @command="handleCommand" />
     <div class="dashboard-content">
       <LeftSideBar class="left-side" @menu-select="handleMenuSelect"/>
       <MainContent class="main-content"/>
@@ -13,13 +13,13 @@ import { getDocuments } from '@/api/documents'
 import { logout } from '@/api/user'
 import LeftSideBar from './components/LeftSideBar.vue'
 import MainContent from './components/MainContent.vue'
-// import Topbar from './components/Topbar.vue'
+import Topbar from './components/Topbar.vue'
 
 export default {
   name: 'DashboardPage',
   components: {
       LeftSideBar,
-    //   Topbar,
+      Topbar,
       MainContent
   },
   data() {
@@ -166,19 +166,22 @@ export default {
 
 .left-side {
   flex-shrink: 0;
+  margin-top: 2px;
   /* width: 250px; */
 }
 
 .main-content {
   flex: 1;
   overflow: hidden;
+  margin: 8px 16px;
 }
 
 /* 创建水平布局容器 */
 .dashboard-content {
+  background-color: #F0F2F5;
   display: flex;
   flex: 1;
-  height: calc(100vh - 44px); /* 减去top-bar的实际高度 */
+  height: calc(100vh - 64px); /* 减去top-bar的64px高度 */
   overflow: hidden;
 }
 
