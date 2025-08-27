@@ -25,7 +25,7 @@
             @click="handleMenuSelect('file-list')"
           >
             <!-- <i class="submenu-icon">📄</i> -->
-            <span>文件管理</span>
+            <span>文件收纳</span>
           </div>
         </div>
       </div>
@@ -211,7 +211,7 @@ export default {
   background-color: #FFFFFF;
   height: 45px;
   line-height: 45px;
-  padding: 0 60px 0 60px;
+  padding: 0 68px 0 68px;
   color: rgba(0, 0, 0, 0.55);
   cursor: pointer;
   transition: all 0.3s ease;
@@ -248,6 +248,7 @@ export default {
 
 .menu-title {
   flex: 1;
+  font-weight: 600;
 }
 </style>
 
