@@ -24,7 +24,7 @@
             :class="{ active: activeMenu === 'file-list'}" 
             @click="handleMenuSelect('file-list')"
           >
-            <i class="submenu-icon">📄</i>
+            <!-- <i class="submenu-icon">📄</i> -->
             <span>文件管理</span>
           </div>
         </div>
@@ -144,7 +144,7 @@ export default {
 
 /* 菜单组样式 */
 .menu-group {
-  border-bottom: 1px solid #435266;
+  /* border-bottom: 1px solid #435266 */
 }
 
 .menu-header {
@@ -211,7 +211,7 @@ export default {
   background-color: #FFFFFF;
   height: 45px;
   line-height: 45px;
-  padding: 0 20px 0 50px;
+  padding: 0 60px 0 60px;
   color: rgba(0, 0, 0, 0.55);
   cursor: pointer;
   transition: all 0.3s ease;
