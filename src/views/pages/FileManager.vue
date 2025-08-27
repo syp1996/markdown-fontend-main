@@ -632,12 +632,9 @@ export default {
       return mockContents[documentId] || null
     },
     
-    editFile(file) {
-      if (file.type === 'markdown') {
-        this.$router.push('/dashboard/markdown-editor')
-      } else {
-        this.$router.push('/dashboard/rich-editor')
-      }
+    editFile() {
+      // 编辑文件功能开发中...
+      this.$message.info('编辑文件功能开发中...')
     },
     
                    async deleteFile(file) {

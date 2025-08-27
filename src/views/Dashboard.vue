@@ -106,31 +106,12 @@ export default {
         case 'home':
           this.$router.push('/dashboard/home')
           break
-        case 'markdown-editor':
-          this.$router.push('/dashboard/markdown-editor')
-          break
-        case 'rich-editor':
-          this.$router.push('/dashboard/rich-editor')
-          break
-        case 'code-editor':
-          this.$router.push('/dashboard/code-editor')
-          break
-        case 'project-list':
-          this.$router.push('/dashboard/project-list')
-          break
+
         case 'file-list':
           // 文件列表处理
           this.$router.push('/dashboard/file-manager')
           break
-        case 'project-management':
-          this.$router.push('/dashboard/project-management')
-          break
-        case 'document-editor':
-          this.$router.push('/dashboard/document-editor')
-          break
-        case 'settings':
-          this.$router.push('/dashboard/settings')
-          break
+
         case 'project-templates':
           // 项目模板处理
           this.$message.info('项目模板功能开发中...')

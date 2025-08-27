@@ -8,7 +8,7 @@
       <!-- AI助手 -->
       <div class="menu-item" :class="{ active: activeMenu === 'home' }" @click="handleMenuSelect('home')">
         <i class="menu-icon">🤖</i>
-        <span class="menu-title">AI助手</span>
+        <span class="menu-title">首页</span>
       </div>
       
       <!-- 文件管理 -->
@@ -29,26 +29,6 @@
           </div>
         </div>
       </div>
-      
-      <!-- 项目管理 -->
-      <div class="menu-item" :class="{ active: activeMenu === 'project-management' }" @click="handleMenuSelect('project-management')">
-        <i class="menu-icon">📋</i>
-        <span class="menu-title">项目管理</span>
-      </div>
-      
-      <!-- 文档编辑 -->
-      <div class="menu-item" :class="{ active: activeMenu === 'document-editor' }" @click="handleMenuSelect('document-editor')">
-        <i class="menu-icon">✏️</i>
-        <span class="menu-title">文档编辑</span>
-      </div>
-      
-      <!-- 系统设置 -->
-      <div class="menu-item" :class="{ active: activeMenu === 'settings' }" @click="handleMenuSelect('settings')">
-        <i class="menu-icon">⚙️</i>
-        <span class="menu-title">系统设置</span>
-      </div>
-      
-
     </nav>
   </div>
 </template>

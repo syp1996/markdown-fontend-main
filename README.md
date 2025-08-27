@@ -39,12 +39,7 @@ src/
 │   │   └── Topbar.vue       # 顶部导航栏
 │   ├── pages/               # 页面组件
 │   │   ├── Home.vue         # 首页
-│   │   ├── MarkdownEditor.vue # Markdown编辑器
-│   │   ├── RichEditor.vue   # 富文本编辑器
-│   │   ├── CodeEditor.vue   # 代码编辑器
-│   │   ├── FileManager.vue  # 文件管理
-│   │   ├── ProjectList.vue  # 项目列表
-│   │   └── UserSettings.vue # 用户设置
+│   │   └── FileManager.vue  # 文件管理
 │   ├── Dashboard.vue        # 主面板
 │   └── Home.vue             # 登录页
 ├── router/
@@ -69,12 +64,7 @@ src/
 - `/` - 登录页
 - `/dashboard` - 主面板（需要登录）
 - `/dashboard/home` - 首页
-- `/dashboard/markdown-editor` - Markdown编辑器
-- `/dashboard/rich-editor` - 富文本编辑器
-- `/dashboard/code-editor` - 代码编辑器
 - `/dashboard/file-manager` - 文件管理
-- `/dashboard/project-list` - 项目列表
-- `/dashboard/settings` - 用户设置
 
 ### 路由守卫
 - 需要登录的页面会自动重定向到登录页
@@ -108,9 +98,6 @@ npm run lint
 左侧边栏包含以下主要菜单：
 - **首页**: 系统概览和快速操作
 - **文件管理**: 文档和文件的管理
-- **文档编辑**: 各种编辑器
-- **项目管理**: 项目相关功能
-- **用户中心**: 个人设置和偏好
 
 ### 组件通信
 - 侧边栏通过 `@menu-select` 事件向父组件发送菜单选择
@@ -136,7 +123,7 @@ npm run lint
 - [x] 路由系统实现
 - [x] 侧边栏菜单
 - [x] 主内容区域
-- [x] 各种编辑器页面
+- [x] 首页和文件管理功能
 - [x] 文件管理页面
 - [x] 项目列表页面
 - [x] 用户设置页面
