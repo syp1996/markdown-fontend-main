@@ -1,6 +1,12 @@
 <template>
     <div class="left-side">
         <nav class="sidebar-menu">
+            <!-- 搜索菜单 -->
+            <div class="menu-item" :class="{ active: activeMenu === 'search' }" @click="handleMenuSelect('search')">
+                <img class="menu-icon" src="@/icons/search.png" alt="搜索图标" />
+                <span class="menu-title">搜索</span>
+            </div>
+
             <!-- 首页菜单 -->
             <div class="menu-item" :class="{ active: activeMenu === 'home' }" @click="handleMenuSelect('home')">
                 <img class="menu-icon" src="@/icons/home.png" alt="首页图标" />
