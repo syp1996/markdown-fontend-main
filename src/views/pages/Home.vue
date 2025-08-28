@@ -587,6 +587,9 @@ export default {
   padding: 20px 24px;
   background: white;
   border-top: 1px solid #e8eaec;
+  width: 672px;
+  height: 124px;
+  margin: 0 auto;
 }
 
 .input-wrapper {
@@ -676,6 +679,9 @@ export default {
   
   .chat-input-container {
     padding: 16px;
+    width: 100%;
+    height: auto;
+    min-height: 100px;
   }
   
   .welcome-content {
