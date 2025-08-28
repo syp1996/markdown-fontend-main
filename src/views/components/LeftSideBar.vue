@@ -1,8 +1,7 @@
 <template>
     <div class="left-side">
-
         <nav class="sidebar-menu">
-            <!-- AI助手 -->
+            <!-- 首页菜单 -->
             <div class="menu-item" :class="{ active: activeMenu === 'home' }" @click="handleMenuSelect('home')">
                 <span class="menu-title">首页</span>
             </div>
@@ -10,15 +9,29 @@
             <!-- 文件管理 -->
             <div class="menu-group">
                 <div class="menu-header" @click="toggleSubmenu('files')">
-                    <img class="menu-icon" src="@/icons/files.png" style="width: 24px; height: 24px;" />
+                    <img class="menu-icon" src="@/icons/files.png" alt="文件管理图标" />
                     <span class="menu-title">文件管理</span>
-                    <img class="submenu-arrow" :class="{ 'expanded': openSubmenus.includes('files') }"
-                        src="@/icons/CaretDown.png" style="width: 12px; height: 12px;" />
+                    <img 
+                        class="submenu-arrow" 
+                        :class="{ 'expanded': openSubmenus.includes('files') }"
+                        src="@/icons/CaretDown.png" 
+                        alt="展开箭头"
+                    />
                 </div>
-                <div class="submenu" :class="{ 'expanded': openSubmenus.includes('files') }" v-for="item in documents"
-                    :key="item.id">
-                    <div class="submenu-item" @click="handleMenuSelect('file-list', item)">
+                <div class="submenu" :class="{ 'expanded': openSubmenus.includes('files') }">
+                    <div 
+                        v-for="item in documents" 
+                        :key="item.id"
+                        class="submenu-item" 
+                        :class="{ active: activeMenu === 'file-list' && selectedFile?.id === item.id }"
+                        :title="item.title"
+                        @click="handleMenuSelect('file-list', item)"
+                    >
                         <span>{{ item.title }}</span>
+                    </div>
+                    <!-- 空状态提示 -->
+                    <div v-if="documents.length === 0" class="submenu-empty">
+                        暂无文件
                     </div>
                 </div>
             </div>
@@ -30,54 +43,68 @@
 import { getDocuments } from '@/api/documents';
 import eventBus from '@/utils/eventBus';
 import { toRaw } from 'vue';
+
 export default {
     name: 'LeftSideBar',
+    emits: ['menu-select'],
     data() {
         return {
             activeMenu: 'home',
             documents: [],
-            openSubmenus: ['files'] // 默认展开文件管理菜单
+            selectedFile: null,
+            openSubmenus: ['files'], // 默认展开文件管理菜单
+            loading: false,
+            error: null
         }
     },
-    created() {
-        getDocuments().then(res => {
-            console.log(res)
-            this.documents = res.items || []
-        })
+    async created() {
+        await this.loadDocuments();
     },
     methods: {
-        handleMenuSelect(index, item) {
-            this.activeMenu = index
+        async loadDocuments() {
+            try {
+                this.loading = true;
+                this.error = null;
+                const res = await getDocuments();
+                this.documents = res?.items || [];
+            } catch (error) {
+                console.error('加载文档失败:', error);
+                this.error = '文档加载失败';
+                this.documents = [];
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        handleMenuSelect(index, item = null) {
+            this.activeMenu = index;
+            
             if (item) {
+                this.selectedFile = item;
                 // 使用 toRaw 获取原始对象
-                const rawItem = toRaw(item)
+                const rawItem = toRaw(item);
                 // 发射文件选择事件
-                eventBus.emit('file-selected', {
-                    rawItem
-                })
+                eventBus.emit('file-selected', { rawItem });
+            } else {
+                this.selectedFile = null;
             }
 
             // 向父组件发送菜单选择事件
-            this.$emit('menu-select', index)
+            this.$emit('menu-select', index);
         },
+
         toggleSubmenu(menuKey) {
-            const index = this.openSubmenus.indexOf(menuKey)
+            const index = this.openSubmenus.indexOf(menuKey);
             if (index > -1) {
-                this.openSubmenus.splice(index, 1)
+                this.openSubmenus.splice(index, 1);
             } else {
-                this.openSubmenus.push(menuKey)
-                // 确保展开的菜单能够正确显示
-                this.$nextTick(() => {
-                    // 如果展开的是文件管理菜单，确保滚动条正常工作
-                    if (menuKey === 'files' && this.documents.length > 8) {
-                        // 当文档数量较多时，确保菜单可以滚动
-                        const submenu = document.querySelector('.submenu.expanded')
-                        if (submenu) {
-                            submenu.style.maxHeight = '60vh'
-                        }
-                    }
-                })
+                this.openSubmenus.push(menuKey);
             }
+        },
+
+        // 刷新文档列表的方法
+        async refreshDocuments() {
+            await this.loadDocuments();
         }
     }
 }
@@ -98,9 +125,7 @@ export default {
     background-color: #FFFFFF;
     flex: 1;
     overflow-y: auto;
-    /* 添加垂直滚动 */
     overflow-x: hidden;
-    /* 隐藏水平滚动 */
 }
 
 /* 自定义侧边栏滚动条样式 */
@@ -109,16 +134,16 @@ export default {
 }
 
 .sidebar-menu::-webkit-scrollbar-track {
-    background: #304156;
+    background: #f5f5f5;
 }
 
 .sidebar-menu::-webkit-scrollbar-thumb {
-    background: #435266;
+    background: #c0c4cc;
     border-radius: 3px;
 }
 
 .sidebar-menu::-webkit-scrollbar-thumb:hover {
-    background: #5a6c7d;
+    background: #909399;
 }
 
 /* 一级菜单项样式 */
@@ -135,10 +160,9 @@ export default {
     font-size: 16px;
 }
 
-/* .menu-item:hover {
-  background-color: #263445;
-  border-left-color: #409EFF;
-} */
+.menu-item:hover {
+    background-color: rgba(64, 158, 255, 0.02);
+}
 
 .menu-item.active {
     background-color: rgba(64, 158, 255, 0.05);
@@ -147,10 +171,6 @@ export default {
 }
 
 /* 菜单组样式 */
-.menu-group {
-    /* border-bottom: 1px solid #435266 */
-}
-
 .menu-header {
     height: 50px;
     line-height: 50px;
@@ -165,13 +185,19 @@ export default {
     font-size: 16px;
 }
 
-/* .menu-header:hover {
-  background-color: #263445;
-  border-left-color: #409EFF;
-} */
+.menu-header:hover {
+    background-color: rgba(64, 158, 255, 0.02);
+}
+
+.menu-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+}
 
 .submenu-arrow {
-    font-size: 12px;
+    width: 12px;
+    height: 12px;
     transition: transform 0.3s ease;
 }
 
@@ -184,60 +210,57 @@ export default {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease;
-    background-color: #1f2d3d;
+    background-color: #ffffff;
 }
 
 .submenu.expanded {
     max-height: 60vh;
-    /* 使用视口高度的60%作为最大高度 */
     overflow-y: auto;
-    /* 添加垂直滚动条 */
 }
 
-/* 自定义滚动条样式 */
+/* 自定义子菜单滚动条样式 */
 .submenu.expanded::-webkit-scrollbar {
     width: 6px;
 }
 
 .submenu.expanded::-webkit-scrollbar-track {
-    background: #1f2d3d;
+    background: #f5f5f5;
 }
 
 .submenu.expanded::-webkit-scrollbar-thumb {
-    background: #435266;
+    background: #c0c4cc;
     border-radius: 3px;
 }
 
 .submenu.expanded::-webkit-scrollbar-thumb:hover {
-    background: #5a6c7d;
+    background: #909399;
 }
 
 .submenu-item {
-    font-size: 16px;
+    font-size: 14px;
     background-color: #FFFFFF;
     height: 45px;
     line-height: 45px;
-    padding: 0 68px 0 68px;
-    color: rgba(0, 0, 0, 0.55);
+    padding: 0 48px;
+    color: rgba(0, 0, 0, 0.65);
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
     white-space: nowrap;
-    /* 防止文本换行 */
     overflow: hidden;
-    /* 隐藏溢出内容 */
     text-overflow: ellipsis;
-    /* 显示省略号 */
+    border-left: 3px solid transparent;
 }
 
 .submenu-item:hover {
-    background-color: #FDFDFD;
+    background-color: rgba(64, 158, 255, 0.02);
     color: #409EFF;
 }
 
 .submenu-item.active {
-    background-color: #FDFDFD;
+    background-color: rgba(64, 158, 255, 0.05);
+    border-left-color: #409EFF;
     color: #409EFF;
 }
 
@@ -247,17 +270,33 @@ export default {
     text-overflow: ellipsis;
 }
 
-/* 图标样式 */
-.menu-icon,
-.submenu-icon {
-    margin-right: 10px;
-    font-size: 16px;
-    width: 20px;
+.submenu-empty {
+    padding: 20px 48px;
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 14px;
     text-align: center;
 }
 
 .menu-title {
     flex: 1;
-    font-weight: 600;
+    font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .left-side {
+        width: 200px;
+    }
+    
+    .menu-item,
+    .menu-header {
+        padding: 0 16px;
+        font-size: 14px;
+    }
+    
+    .submenu-item {
+        padding: 0 32px;
+        font-size: 13px;
+    }
 }
 </style>
