@@ -1,6 +1,6 @@
 <template>
     <div class="file-manager-page">
-        <div class="toolbar">
+        <!-- <div class="toolbar">
             <div class="search-box">
                 <input type="text" v-model="searchQuery" placeholder="搜索文件..." class="search-input">
                 <button class="search-btn">🔍</button>
@@ -16,49 +16,9 @@
                     上传文件
                 </button>
             </div>
-        </div>
+        </div> -->
 
         <div class="main-content">
-            <!-- 左侧文件列表 -->
-            <!-- <div class="file-list-container">
-        <div class="file-list">
-          <div class="file-item" 
-               v-for="file in files" 
-               :key="file.id" 
-               @click="handleFileClick(file)"
-               :class="{ 'active': selectedFile && selectedFile.id === file.id }">
-            <div class="file-icon">
-              <span v-if="file.type === 'folder'">📁</span>
-              <span v-else-if="file.type === 'markdown'">📝</span>
-              <span v-else>📄</span>
-            </div>
-            
-            <div class="file-info">
-              <div v-if="editingId !== file.id" class="file-name">{{ file.title }}</div>
-              <input 
-                v-else
-                :ref="'edit-'+file.id"
-                class="file-name-input"
-                type="text"
-                v-model="editingTitle"
-                @click.stop
-                @blur="saveTitle(file)"
-                @keydown.enter.prevent="saveTitle(file)"
-                @keydown.esc.prevent="cancelEdit"
-              />
-            </div>
-            
-            <div class="file-actions">
-              <button class="file-action-btn" @click.stop="startEdit(file)" title="修改">
-                ✏️
-              </button>
-              <button class="file-action-btn" @click.stop="deleteFile(file)" title="删除">
-                🗑️
-              </button>
-            </div>
-          </div>
-        </div>
-      </div> -->
 
             <!-- 右侧文件内容展示区域 -->
             <div class="file-content-container">
