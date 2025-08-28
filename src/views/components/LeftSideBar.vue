@@ -1,13 +1,9 @@
 <template>
   <div class="left-side">
-    <!-- <div class="sidebar-header">
-      <h3>导航菜单</h3>
-    </div> -->
-    
+
     <nav class="sidebar-menu">
       <!-- AI助手 -->
       <div class="menu-item" :class="{ active: activeMenu === 'home' }" @click="handleMenuSelect('home')">
-        <!-- <i class="menu-icon">🤖</i> -->
         <span class="menu-title">首页</span>
       </div>
       
@@ -18,14 +14,12 @@
           <span class="menu-title">文件管理</span>
           <img class="submenu-arrow" :class="{ 'expanded': openSubmenus.includes('files') }" src="@/icons/CaretDown.png" style="width: 12px; height: 12px;" />
         </div>
-        <div class="submenu" :class="{ 'expanded': openSubmenus.includes('files') }">
+        <div class="submenu" :class="{ 'expanded': openSubmenus.includes('files') }" v-for="item in documents" :key="item.id">
           <div 
             class="submenu-item" 
-            :class="{ active: activeMenu === 'file-list'}" 
             @click="handleMenuSelect('file-list')"
           >
-            <!-- <i class="submenu-icon">📄</i> -->
-            <span>文件收纳</span>
+            <span>{{ item.title }}</span>
           </div>
         </div>
       </div>

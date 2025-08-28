@@ -25,7 +25,7 @@
     
     <div class="main-content">
       <!-- 左侧文件列表 -->
-      <div class="file-list-container">
+      <!-- <div class="file-list-container">
         <div class="file-list">
           <div class="file-item" 
                v-for="file in files" 
@@ -63,7 +63,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
       
       <!-- 右侧文件内容展示区域 -->
       <div class="file-content-container">
