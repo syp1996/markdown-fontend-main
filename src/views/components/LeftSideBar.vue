@@ -34,6 +34,7 @@
                         @click="handleMenuSelect('file-list', item)"
                     >
                         <span>{{ item.title }}</span>
+                        <img class="submenu-dot-icon" src="@/icons/dot.png" alt="更多操作" />
                     </div>
                     <!-- 空状态提示 -->
                     <div v-if="documents.length === 0" class="submenu-empty">
@@ -247,12 +248,13 @@ export default {
     background-color: #FFFFFF;
     height: 45px;
     line-height: 45px;
-    padding: 0 48px;
+    padding: 0 24px 0 40px;
     color: rgba(0, 0, 0, 0.65);
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -273,6 +275,17 @@ export default {
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.submenu-dot-icon {
+    width: 20px;
+    height: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.submenu-item:hover .submenu-dot-icon {
+    opacity: 1;
 }
 
 .submenu-empty {
