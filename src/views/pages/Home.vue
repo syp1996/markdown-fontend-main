@@ -1,7 +1,7 @@
 <template>
   <div class="chat-page">
     <!-- 聊天消息区 -->
-    <div class="chat-messages" ref="messagesContainer">
+    <div v-if="messages.length > 0" class="chat-messages" ref="messagesContainer">
 
       <div v-for="(message, index) in messages" :key="index" class="message-item" :class="message.role">
         <div class="message-avatar">
@@ -44,9 +44,6 @@
           @input="handleInput"
           ref="messageInput"
         ></textarea>
-      </div>
-      <div class="input-tips">
-        <span class="tip">💡 提示：按Shift+Enter换行，Enter发送</span>
       </div>
     </div>
   </div>
