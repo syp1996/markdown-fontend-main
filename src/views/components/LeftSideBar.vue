@@ -248,7 +248,7 @@ export default {
     background-color: #FFFFFF;
     height: 45px;
     line-height: 45px;
-    padding: 0 24px 0 40px;
+    padding: 0 24px 0 56px;
     color: rgba(0, 0, 0, 0.65);
     cursor: pointer;
     transition: all 0.3s ease;
