@@ -1,5 +1,6 @@
 <template>
     <div class="chat-page">
+
       <!-- 聊天消息区 -->
       <div v-if="messages.length > 0" class="chat-messages" ref="messagesContainer">
   
@@ -31,10 +32,31 @@
           </div>
         </div>
       </div>
+
+      <!-- 欢迎界面 -->
+      <div v-else class="welcome-container">
+        <!-- 问候语 -->
+        <div class="greeting-section">
+          <div class="greeting-icon">🌟</div>
+          <h1 class="greeting-text">Good morning, Kyrie</h1>
+        </div>
+      </div>
   
       <!-- 输入区域 -->
       <div class="chat-input-container">
         <div class="input-wrapper">
+          <div class="input-controls">
+            <button class="attach-btn" title="附件">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+            </button>
+            <button class="format-btn" title="格式">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12h18M3 6h18M3 18h18"/>
+              </svg>
+            </button>
+          </div>
           <div
             ref="messageInput"
             class="message-input"
@@ -44,8 +66,33 @@
             @paste="handlePaste"
             @focus="handleFocus"
             @blur="handleBlur"
-            :data-placeholder="currentMessage ? '' : '输入您的问题，按Enter发送...'"
+            :data-placeholder="currentMessage ? '' : 'How can I help you today?'"
           ></div>
+          <div class="input-right">
+            <div class="model-indicator">
+              <span class="model-name">Claude Sonnet 4</span>
+            </div>
+            <button 
+              class="send-btn" 
+              @click="sendMessage" 
+              :disabled="!currentMessage.trim() || isLoading"
+              title="发送消息"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="m22 2-7 20-4-9-9-4 20-7z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <!-- 升级提示 -->
+        <div class="upgrade-notice">
+          <span class="upgrade-text">Upgrade to connect your tools to Claude</span>
+          <div class="tool-icons">
+            <div class="tool-icon google"></div>
+            <div class="tool-icon docs"></div>
+            <div class="tool-icon github"></div>
+            <div class="arrow-right">→</div>
+          </div>
         </div>
       </div>
     </div>
@@ -299,80 +346,67 @@
   .chat-page {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    background: #FFFFFF;
-    border-radius: 4px;
+    height: 100vh;
+    background: #f8f9fa;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
-  
-  /* 聊天标题栏 */
-  .chat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 24px;
-    background: white;
-    border-bottom: 1px solid #e8eaec;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  }
-  
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  
-  .ai-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  /* 顶部计划信息 */
+  .plan-info {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
-  }
-  
-  .ai-info h3 {
-    margin: 0;
-    color: #17233d;
-    font-size: 16px;
-    font-weight: 600;
-  }
-  
-  .status {
-    font-size: 12px;
-    color: #808695;
-    padding: 2px 8px;
-    border-radius: 12px;
-    background: #f0f0f0;
-  }
-  
-  .status.online {
-    color: #67c23a;
-    background: #f0f9e8;
-  }
-  
-  .clear-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    border: 1px solid #dcdfe6;
+    padding: 12px 0;
     background: white;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    border-bottom: 1px solid #e5e7eb;
     font-size: 14px;
   }
-  
-  .clear-btn:hover:not(:disabled) {
-    border-color: #409eff;
-    color: #409eff;
+
+  .plan-text {
+    color: #6b7280;
   }
-  
-  .clear-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+
+  .plan-separator {
+    margin: 0 8px;
+    color: #d1d5db;
+  }
+
+  .upgrade-link {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .upgrade-link:hover {
+    text-decoration: underline;
+  }
+
+  /* 欢迎界面 */
+  .welcome-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .greeting-section {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .greeting-icon {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+
+  .greeting-text {
+    font-size: 2.5rem;
+    font-weight: 400;
+    color: #1f2937;
+    margin: 0;
+    letter-spacing: -0.02em;
   }
   
   /* 聊天消息区 */
@@ -402,64 +436,6 @@
   
   .chat-messages::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
-  }
-  
-  /* 欢迎消息 */
-  .welcome-message {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    text-align: center;
-  }
-  
-  .welcome-content {
-    max-width: 600px;
-    padding: 40px;
-  }
-  
-  .welcome-icon {
-    font-size: 4rem;
-    margin-bottom: 20px;
-  }
-  
-  .welcome-content h2 {
-    color: #17233d;
-    margin: 0 0 16px 0;
-    font-size: 1.8rem;
-    font-weight: 600;
-  }
-  
-  .welcome-content p {
-    color: #808695;
-    margin: 0 0 32px 0;
-    font-size: 16px;
-    line-height: 1.6;
-  }
-  
-  .suggestion-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
-  }
-  
-  .chip {
-    padding: 10px 16px;
-    background: white;
-    border: 1px solid #e8eaec;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 14px;
-    color: #606266;
-  }
-  
-  .chip:hover {
-    border-color: #409eff;
-    color: #409eff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(64, 158, 255, 0.2);
   }
   
   /* 消息项 */
@@ -499,7 +475,7 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: #409eff;
+    background: #3b82f6;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -513,6 +489,10 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     font-size: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .message-content {
@@ -524,19 +504,19 @@
     background: white;
     padding: 12px 16px;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     word-wrap: break-word;
     line-height: 1.6;
   }
   
   .message-item.user .message-text {
-    background: #409eff;
+    background: #3b82f6;
     color: white;
   }
   
   .message-time {
     font-size: 12px;
-    color: #c0c4cc;
+    color: #9ca3af;
     margin-top: 4px;
     text-align: right;
   }
@@ -547,10 +527,10 @@
   
   /* 代码块样式 */
   .message-text code {
-    background: #f5f7fa;
+    background: #f3f4f6;
     padding: 2px 6px;
     border-radius: 4px;
-    font-family: 'Consolas', 'Monaco', monospace;
+    font-family: 'Monaco', 'Consolas', monospace;
     font-size: 14px;
   }
   
@@ -559,7 +539,7 @@
   }
   
   .message-text pre {
-    background: #f5f7fa;
+    background: #f3f4f6;
     padding: 12px;
     border-radius: 8px;
     overflow-x: auto;
@@ -582,7 +562,7 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #c0c4cc;
+    background: #9ca3af;
     animation: typing 1.4s infinite;
   }
   
@@ -610,7 +590,7 @@
     display: inline-block;
     animation: blink 1s infinite;
     font-weight: bold;
-    color: #409eff;
+    color: #3b82f6;
     margin-left: 2px;
   }
   
@@ -625,51 +605,170 @@
   
   /* 输入区域 */
   .chat-input-container {
-    padding: 20px 24px;
     background: white;
-    border-top: 1px solid #e8eaec;
-    width: 672px;
-    height: 124px;
-    margin: 0 auto;
+    border-top: 1px solid #e5e7eb;
+    padding: 20px;
   }
   
   .input-wrapper {
     display: flex;
-    gap: 12px;
     align-items: flex-end;
-    max-width: 100%;
+    gap: 12px;
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 24px;
+    padding: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .input-controls {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+  }
+
+  .attach-btn,
+  .format-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .attach-btn:hover,
+  .format-btn:hover {
+    background: #f3f4f6;
+    color: #374151;
   }
   
   .message-input {
     flex: 1;
     min-height: 40px;
     max-height: 120px;
-    padding: 10px 16px;
-    border: 1px solid #dcdfe6;
-    border-radius: 20px;
+    padding: 8px 12px;
+    border: none;
     outline: none;
-    font-size: 14px;
-    line-height: 1.4;
+    font-size: 16px;
+    line-height: 1.5;
     font-family: inherit;
-    transition: border-color 0.3s ease;
     overflow-y: auto;
     word-wrap: break-word;
     white-space: pre-wrap;
-  }
-  
-  .message-input:focus {
-    border-color: #409eff;
+    background: transparent;
+    resize: none;
   }
   
   /* 占位符样式 */
   .message-input:empty:before {
     content: attr(data-placeholder);
-    color: #c0c4cc;
+    color: #9ca3af;
     pointer-events: none;
   }
+
+  .input-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-right: 4px;
+  }
+
+  .model-indicator {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    background: #f9fafb;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+  }
+
+  .model-name {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 500;
+  }
   
-  .message-input:focus:empty:before {
-    content: attr(data-placeholder);
+  .send-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #d97706;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  
+  .send-btn:hover:not(:disabled) {
+    background: #b45309;
+    transform: scale(1.05);
+  }
+  
+  .send-btn:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* 升级提示 */
+  .upgrade-notice {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 8px 16px;
+    background: #f8fafc;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+
+  .upgrade-text {
+    color: #64748b;
+  }
+
+  .tool-icons {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tool-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    background-size: contain;
+  }
+
+  .tool-icon.google {
+    background: linear-gradient(45deg, #4285f4, #34a853, #fbbc05, #ea4335);
+  }
+
+  .tool-icon.docs {
+    background: #4285f4;
+  }
+
+  .tool-icon.github {
+    background: #24292e;
+  }
+
+  .arrow-right {
+    color: #9ca3af;
+    font-size: 16px;
+    margin-left: 4px;
   }
   
   /* 输入框滚动条 */
@@ -682,59 +781,18 @@
   }
   
   .message-input::-webkit-scrollbar-thumb {
-    background: #dcdfe6;
+    background: #e5e7eb;
     border-radius: 2px;
   }
   
   .message-input::-webkit-scrollbar-thumb:hover {
-    background: #c0c4cc;
-  }
-  
-  .send-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: #409eff;
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    font-size: 16px;
-    flex-shrink: 0;
-  }
-  
-  .send-btn:hover:not(:disabled) {
-    background: #66b1ff;
-    transform: scale(1.05);
-  }
-  
-  .send-btn:disabled {
-    background: #c0c4cc;
-    cursor: not-allowed;
-    transform: none;
-  }
-  
-  .input-tips {
-    margin-top: 8px;
-    text-align: center;
-  }
-  
-  .tip {
-    font-size: 12px;
-    color: #c0c4cc;
+    background: #d1d5db;
   }
   
   /* 响应式设计 */
   @media (max-width: 768px) {
     .chat-page {
       height: 100vh;
-    }
-    
-    .chat-header {
-      padding: 12px 16px;
     }
     
     .chat-messages {
@@ -747,22 +805,22 @@
     
     .chat-input-container {
       padding: 16px;
-      width: 100%;
-      height: auto;
-      min-height: 100px;
     }
-    
-    .welcome-content {
-      padding: 20px;
+
+    .input-wrapper {
+      max-width: 100%;
     }
-    
-    .suggestion-chips {
-      gap: 8px;
+
+    .greeting-text {
+      font-size: 2rem;
     }
-    
-    .chip {
-      font-size: 12px;
-      padding: 8px 12px;
+
+    .input-controls {
+      display: none;
+    }
+
+    .model-indicator {
+      display: none;
     }
   }
   </style>
