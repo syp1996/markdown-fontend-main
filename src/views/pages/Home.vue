@@ -1,47 +1,7 @@
 <template>
   <div class="chat-page">
-    <!-- 聊天标题栏 -->
-    <div class="chat-header">
-      <div class="header-left">
-        <div class="ai-avatar">🤖</div>
-        <div class="ai-info">
-          <h3>DeepSeek AI助手</h3>
-          <span class="status" :class="{ online: isConnected }">
-            {{ isConnected ? '在线' : '离线' }}
-          </span>
-        </div>
-      </div>
-      <div class="header-right">
-        <button class="clear-btn" @click="clearMessages" :disabled="messages.length === 0">
-          <span class="btn-icon">🗑️</span>
-          清空对话
-        </button>
-      </div>
-    </div>
-
     <!-- 聊天消息区 -->
     <div class="chat-messages" ref="messagesContainer">
-      <div v-if="messages.length === 0" class="welcome-message">
-        <div class="welcome-content">
-          <div class="welcome-icon">🎯</div>
-          <h2>欢迎使用AI智能助手</h2>
-          <p>我是DeepSeek AI助手，可以帮您解答各种问题、协助编程、文档编写等任务。</p>
-          <div class="suggestion-chips">
-            <div class="chip" @click="sendSuggestion('帮我写一个Python函数')">
-              💻 编程帮助
-            </div>
-            <div class="chip" @click="sendSuggestion('解释一下什么是机器学习')">
-              🧠 知识问答
-            </div>
-            <div class="chip" @click="sendSuggestion('帮我写一份项目文档')">
-              📝 文档协助
-            </div>
-            <div class="chip" @click="sendSuggestion('今天天气如何？')">
-              🌤️ 日常对话
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div v-for="(message, index) in messages" :key="index" class="message-item" :class="message.role">
         <div class="message-avatar">
@@ -84,14 +44,6 @@
           @input="handleInput"
           ref="messageInput"
         ></textarea>
-        <button 
-          class="send-btn" 
-          @click="sendMessage" 
-          :disabled="!currentMessage.trim() || isLoading"
-        >
-          <span v-if="isLoading" class="loading-icon">⏳</span>
-          <span v-else class="send-icon">🚀</span>
-        </button>
       </div>
       <div class="input-tips">
         <span class="tip">💡 提示：按Shift+Enter换行，Enter发送</span>
@@ -310,7 +262,8 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #f5f7fa;
+  background: #FFFFFF;
+  border-radius: 4px;
 }
 
 /* 聊天标题栏 */
