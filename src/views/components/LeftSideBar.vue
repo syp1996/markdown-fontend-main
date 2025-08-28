@@ -2,13 +2,13 @@
     <div class="left-side">
         <nav class="sidebar-menu">
             <!-- 搜索菜单 -->
-            <div class="menu-item" :class="{ active: activeMenu === 'search' }" @click="handleMenuSelect('search')">
+            <div class="menu-item" @click="handleMenuSelect('search')">
                 <img class="menu-icon" src="@/icons/search.png" alt="搜索图标" />
                 <span class="menu-title">搜索</span>
             </div>
 
             <!-- 首页菜单 -->
-            <div class="menu-item" :class="{ active: activeMenu === 'home' }" @click="handleMenuSelect('home')">
+            <div class="menu-item" @click="handleMenuSelect('home')">
                 <img class="menu-icon" src="@/icons/home.png" alt="首页图标" />
                 <span class="menu-title">主页</span>
             </div>
@@ -30,7 +30,6 @@
                         v-for="item in documents" 
                         :key="item.id"
                         class="submenu-item" 
-                        :class="{ active: activeMenu === 'file-list' && selectedFile?.id === item.id }"
                         :title="item.title"
                         @click="handleMenuSelect('file-list', item)"
                     >
@@ -168,7 +167,7 @@ export default {
 }
 
 .menu-item:hover {
-    background-color: rgba(64, 158, 255, 0.02);
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .menu-item.active {
@@ -193,7 +192,7 @@ export default {
 }
 
 .menu-header:hover {
-    background-color: rgba(64, 158, 255, 0.02);
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .menu-icon {
@@ -261,8 +260,7 @@ export default {
 }
 
 .submenu-item:hover {
-    background-color: rgba(64, 158, 255, 0.02);
-    color: #409EFF;
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .submenu-item.active {
