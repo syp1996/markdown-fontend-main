@@ -3,6 +3,7 @@
         <nav class="sidebar-menu">
             <!-- 首页菜单 -->
             <div class="menu-item" :class="{ active: activeMenu === 'home' }" @click="handleMenuSelect('home')">
+                <img class="menu-icon" src="@/icons/home.png" alt="首页图标" />
                 <span class="menu-title">主页</span>
             </div>
 
