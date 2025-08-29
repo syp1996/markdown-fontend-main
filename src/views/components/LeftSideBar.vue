@@ -9,28 +9,29 @@
             <!-- 搜索菜单 -->
             <div class="menu-item" @click="handleMenuSelect('search')">
                 <img class="menu-icon" src="@/icons/search.png" alt="搜索图标" />
-                <span class="menu-title">搜索</span>
+                <span class="menu-title" v-show="showText">搜索</span>
             </div>
 
             <!-- 首页菜单 -->
             <div class="menu-item" @click="handleMenuSelect('home')">
                 <img class="menu-icon" src="@/icons/home.png" alt="首页图标" />
-                <span class="menu-title">主页</span>
+                <span class="menu-title" v-show="showText">主页</span>
             </div>
 
             <!-- 文件管理 -->
             <div class="menu-group">
                 <div class="menu-header" @click="toggleSubmenu('files')">
                     <img class="menu-icon" src="@/icons/files.png" alt="文件管理图标" />
-                    <span class="menu-title">文件管理</span>
+                    <span class="menu-title" v-show="showText">文件管理</span>
                     <img 
                         class="submenu-arrow" 
                         :class="{ 'expanded': openSubmenus.includes('files') }"
                         src="@/icons/CaretDown.png" 
                         alt="展开箭头"
+                        v-show="showText"
                     />
                 </div>
-                <div class="submenu" :class="{ 'expanded': openSubmenus.includes('files') }">
+                <div class="submenu" :class="{ 'expanded': openSubmenus.includes('files') && showText }">
                     <div 
                         v-for="item in documents" 
                         :key="item.id"
@@ -67,7 +68,8 @@ export default {
             openSubmenus: ['files'], // 默认展开文件管理菜单
             loading: false,
             error: null,
-            isCollapsed: false // 新增：侧边栏收缩状态
+            isCollapsed: false, // 新增：侧边栏收缩状态
+            showText: true // 新增：控制文字显示的状态
         }
     },
     async created() {
@@ -107,6 +109,9 @@ export default {
         },
 
         toggleSubmenu(menuKey) {
+            // 收缩状态下不处理子菜单展开
+            if (!this.showText) return;
+            
             const index = this.openSubmenus.indexOf(menuKey);
             if (index > -1) {
                 this.openSubmenus.splice(index, 1);
@@ -122,7 +127,20 @@ export default {
 
         // 新增：切换侧边栏展开/收缩状态
         toggleSidebar() {
-            this.isCollapsed = !this.isCollapsed;
+            if (this.isCollapsed) {
+                // 展开：先展开容器，等动画完成后显示文字
+                this.isCollapsed = false;
+                setTimeout(() => {
+                    this.showText = true;
+                }, 300); // 300ms 对应 CSS 过渡时间
+            } else {
+                // 收缩：先隐藏文字，然后收缩容器
+                this.showText = false;
+                setTimeout(() => {
+                    this.isCollapsed = true;
+                }, 50); // 稍微延迟让文字先消失
+            }
+            
             console.log('侧边栏状态:', this.isCollapsed ? '收缩' : '展开');
             // 向父组件发送状态变化事件
             this.$emit('sidebar-toggle', this.isCollapsed);
@@ -144,7 +162,7 @@ export default {
 
 /* 收缩状态的left-side */
 .left-side.collapsed {
-    width: 72px;
+    width: 56px;
 }
 
 .sidebar-menu {
@@ -160,6 +178,21 @@ export default {
 .sidebar-menu.collapsed {
     width: 56px;
     overflow: hidden;
+}
+
+/* 收缩状态下调整菜单项样式 */
+.sidebar-menu.collapsed .menu-item {
+    justify-content: center;
+    padding: 0 16px;
+}
+
+.sidebar-menu.collapsed .menu-header {
+    justify-content: center;
+    padding: 0 16px;
+}
+
+.sidebar-menu.collapsed .menu-icon {
+    margin-right: 0;
 }
 
 /* 自定义侧边栏滚动条样式 */
@@ -184,7 +217,7 @@ export default {
 .menu-item {
     height: 50px;
     line-height: 50px;
-    padding: 0 16px;
+    padding: 0 24px;
     color: rgba(0, 0, 0, 0.75);
     cursor: pointer;
     border-left: 3px solid transparent;
@@ -223,7 +256,7 @@ export default {
 .menu-header {
     height: 50px;
     line-height: 50px;
-    padding: 0 16px;
+    padding: 0 24px;
     color: rgba(0, 0, 0, 0.75);
     cursor: pointer;
     border-left: 3px solid transparent;
@@ -241,7 +274,7 @@ export default {
 .menu-icon {
     width: 24px;
     height: 24px;
-    margin-right: 14px;
+    margin-right: 10px;
 }
 
 .submenu-arrow {

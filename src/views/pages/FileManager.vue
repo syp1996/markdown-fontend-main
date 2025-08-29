@@ -578,7 +578,7 @@ export default {
 
 <style scoped>
 .file-manager-page {
-    padding: 20px;
+    /* padding: 20px; */
     height: 100%;
 }
 
