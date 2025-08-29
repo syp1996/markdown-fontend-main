@@ -7,6 +7,12 @@
                 <span class="menu-title"></span>
             </div>
 
+            <!-- 新建文档菜单 -->
+            <div class="menu-item" @click="handleCreateDocument" style="margin-top: 20px;">
+                <img class="menu-icon" src="@/icons/add.png" alt="新建文档" />
+                <!-- <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">新建文档</span> -->
+            </div>
+
             <!-- 搜索菜单 -->
             <div class="menu-item" @click="handleMenuSelect('search')">
                 <img class="menu-icon" src="@/icons/search.png" alt="搜索图标" />
@@ -87,7 +93,7 @@
 </template>
 
 <script>
-import { deleteDocument, getDocuments, updateDocument } from '@/api/documents';
+import { createDocument, deleteDocument, getDocuments, updateDocument } from '@/api/documents';
 import eventBus from '@/utils/eventBus';
 import { toRaw } from 'vue';
 
@@ -287,6 +293,60 @@ export default {
             this.editingTitle = '';
         },
 
+        // 新增：创建新文档
+        async handleCreateDocument() {
+            try {
+                // 调用创建文档API，只传入必填参数title
+                const response = await createDocument({
+                    title: '新建文档'
+                });
+
+                // 处理API响应，获取新创建的文档数据
+                let newDoc = response;
+                if (response && response.data) {
+                    newDoc = response.data;
+                }
+
+                // 确保新文档有必要的属性
+                if (newDoc && newDoc.id) {
+                    // 将新文档添加到本地文档列表开头
+                    this.documents.unshift(newDoc);
+                    
+                    console.log('文档创建成功:', newDoc);
+                    
+                    // 确保文件管理菜单是展开状态，以便用户看到新文档
+                    if (!this.openSubmenus.includes('files')) {
+                        this.openSubmenus.push('files');
+                    }
+                    
+                    // 等待DOM更新后选中新建的文档
+                    this.$nextTick(() => {
+                        this.handleMenuSelect('file-list', newDoc);
+                    });
+                    
+                    // 通知其他组件新文档已创建
+                    eventBus.emit('document-created', { newDoc });
+                } else {
+                    throw new Error('创建文档返回数据格式异常');
+                }
+
+            } catch (error) {
+                console.error('创建文档失败:', error);
+                
+                // 根据错误类型提供更友好的提示
+                let errorMessage = '创建文档失败，请重试。';
+                if (error.response && error.response.status === 401) {
+                    errorMessage = '用户未登录，请先登录。';
+                } else if (error.response && error.response.status === 403) {
+                    errorMessage = '没有权限创建文档。';
+                } else if (error.response && error.response.status >= 500) {
+                    errorMessage = '服务器错误，请稍后重试。';
+                }
+                
+                alert(errorMessage);
+            }
+        },
+
         // 新增：处理删除
         async handleDelete(item) {
             try {
@@ -440,8 +500,8 @@ export default {
 }
 
 .collapse-icon {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     margin-right: 10px; /* 与其他menu-icon保持一致的右边距 */
     transition: transform 0.3s ease;
 }
