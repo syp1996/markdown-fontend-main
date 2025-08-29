@@ -9,26 +9,29 @@
             <!-- 搜索菜单 -->
             <div class="menu-item" @click="handleMenuSelect('search')">
                 <img class="menu-icon" src="@/icons/search.png" alt="搜索图标" />
-                <span class="menu-title" v-show="showText">搜索</span>
+                <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">搜索</span>
             </div>
 
             <!-- 首页菜单 -->
             <div class="menu-item" @click="handleMenuSelect('home')">
                 <img class="menu-icon" src="@/icons/home.png" alt="首页图标" />
-                <span class="menu-title" v-show="showText">主页</span>
+                <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">主页</span>
             </div>
 
             <!-- 文件管理 -->
             <div class="menu-group">
                 <div class="menu-header" @click="toggleSubmenu('files')">
                     <img class="menu-icon" src="@/icons/files.png" alt="文件管理图标" />
-                    <span class="menu-title" v-show="showText">文件管理</span>
+                    <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">文件管理</span>
                     <img 
                         class="submenu-arrow" 
-                        :class="{ 'expanded': openSubmenus.includes('files') }"
+                        :class="{ 
+                            'expanded': openSubmenus.includes('files'),
+                            'fade-in': showText, 
+                            'fade-out': !showText 
+                        }"
                         src="@/icons/CaretDown.png" 
                         alt="展开箭头"
-                        v-show="showText"
                     />
                 </div>
                 <div class="submenu" :class="{ 'expanded': openSubmenus.includes('files') && showText }">
@@ -69,7 +72,7 @@ export default {
             loading: false,
             error: null,
             isCollapsed: false, // 新增：侧边栏收缩状态
-            showText: true // 新增：控制文字显示的状态
+            showText: true // 新增：控制文字显示的状态（现在不再需要，但保留以避免报错）
         }
     },
     async created() {
@@ -109,9 +112,6 @@ export default {
         },
 
         toggleSubmenu(menuKey) {
-            // 收缩状态下不处理子菜单展开
-            if (!this.showText) return;
-            
             const index = this.openSubmenus.indexOf(menuKey);
             if (index > -1) {
                 this.openSubmenus.splice(index, 1);
@@ -128,17 +128,17 @@ export default {
         // 新增：切换侧边栏展开/收缩状态
         toggleSidebar() {
             if (this.isCollapsed) {
-                // 展开：先展开容器，等动画完成后显示文字
+                // 展开：先展开容器，稍微延迟后显示文字
                 this.isCollapsed = false;
                 setTimeout(() => {
                     this.showText = true;
-                }, 300); // 300ms 对应 CSS 过渡时间
+                }, 150); // 减少延迟时间，让文字更早出现
             } else {
                 // 收缩：先隐藏文字，然后收缩容器
                 this.showText = false;
                 setTimeout(() => {
                     this.isCollapsed = true;
-                }, 50); // 稍微延迟让文字先消失
+                }, 50);
             }
             
             console.log('侧边栏状态:', this.isCollapsed ? '收缩' : '展开');
@@ -191,8 +191,25 @@ export default {
     padding: 0 16px;
 }
 
-.sidebar-menu.collapsed .menu-icon {
+.sidebar-menu.collapsed .menu-icon,
+.sidebar-menu.collapsed .collapse-icon {
     margin-right: 0;
+}
+
+/* 收缩状态下确保所有图标都居中 */
+.sidebar-menu.collapsed .collapse-control {
+    justify-content: center;
+}
+
+/* 文字淡入淡出动画 */
+.fade-in {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.fade-out {
+    opacity: 0;
+    transition: opacity 0.2s ease;
 }
 
 /* 自定义侧边栏滚动条样式 */
@@ -225,6 +242,9 @@ export default {
     display: flex;
     align-items: center;
     font-size: 16px;
+    width: 200px; /* 固定宽度 */
+    min-width: 200px; /* 防止压缩 */
+    flex-shrink: 0; /* 不允许收缩 */
 }
 
 .menu-item:hover {
@@ -265,6 +285,9 @@ export default {
     align-items: center;
     justify-content: space-between;
     font-size: 16px;
+    width: 200px; /* 固定宽度 */
+    min-width: 200px; /* 防止压缩 */
+    flex-shrink: 0; /* 不允许收缩 */
 }
 
 .menu-header:hover {
@@ -334,6 +357,9 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     border-left: 3px solid transparent;
+    width: 180px; /* 固定宽度 */
+    min-width: 180px; /* 防止压缩 */
+    flex-shrink: 0; /* 不允许收缩 */
 }
 
 .submenu-item:hover {
