@@ -8,8 +8,9 @@
             </div>
 
             <!-- 新建文档菜单 -->
-            <div class="menu-item" @click="handleCreateDocument" style="margin-top: 20px;">
-                <img class="menu-icon" src="@/icons/add.png" alt="新建文档" />
+            <div class="menu-item collapse-control" @click="handleCreateDocument" style="margin-top: 20px;">
+                <img class="collapse-icon" src="@/icons/add.png" alt="新建文档" />
+                <span class="menu-title"></span>
                 <!-- <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">新建文档</span> -->
             </div>
 
