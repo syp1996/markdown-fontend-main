@@ -44,7 +44,18 @@
                         @click="handleMenuSelect('file-list', item)"
                     >
                         <span>{{ item.title }}</span>
-                        <img class="submenu-dot-icon" src="@/icons/dot.png" alt="更多操作" />
+                        <div class="dot-icon-wrapper" @click.stop="showDotPopover(item, $event)">
+                            <img class="submenu-dot-icon" src="@/icons/dot.png" alt="更多操作" />
+                            <!-- 弹窗 -->
+                            <div 
+                                v-if="showPopover && popoverItem && popoverItem.id === item.id" 
+                                class="dot-popover"
+                            >
+                                <div class="popover-content">
+                                    这是一个弹窗
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <!-- 空状态提示 -->
                     <div v-if="documents.length === 0" class="submenu-empty">
@@ -73,11 +84,25 @@ export default {
             loading: false,
             error: null,
             isCollapsed: false, // 新增：侧边栏收缩状态
-            showText: true // 新增：控制文字显示的状态（现在不再需要，但保留以避免报错）
+            showText: true, // 新增：控制文字显示的状态（现在不再需要，但保留以避免报错）
+            showPopover: false, // 控制弹窗显示
+            popoverItem: null // 当前弹窗关联的文档项
         }
     },
     async created() {
         await this.loadDocuments();
+    },
+    mounted() {
+        // 添加全局点击监听，点击外部关闭弹窗
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.dot-icon-wrapper')) {
+                this.closePopover();
+            }
+        });
+    },
+    beforeUnmount() {
+        // 组件销毁前移除监听器
+        document.removeEventListener('click', this.closePopover);
     },
     methods: {
         async loadDocuments() {
@@ -145,6 +170,25 @@ export default {
             console.log('侧边栏状态:', this.isCollapsed ? '收缩' : '展开');
             // 向父组件发送状态变化事件
             this.$emit('sidebar-toggle', this.isCollapsed);
+        },
+
+        // 新增：显示点图标弹窗
+        showDotPopover(item) {
+            if (this.showPopover && this.popoverItem?.id === item.id) {
+                // 如果点击的是同一个item，关闭弹窗
+                this.showPopover = false;
+                this.popoverItem = null;
+            } else {
+                // 显示新的弹窗
+                this.showPopover = true;
+                this.popoverItem = item;
+            }
+        },
+
+        // 新增：关闭弹窗
+        closePopover() {
+            this.showPopover = false;
+            this.popoverItem = null;
         }
     }
 }
@@ -387,8 +431,33 @@ export default {
     transition: opacity 0.3s ease;
 }
 
+.dot-icon-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
 .submenu-item:hover .submenu-dot-icon {
     opacity: 1;
+}
+
+/* 弹窗样式 */
+.dot-popover {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #e4e7ed;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    min-width: 120px;
+}
+
+.popover-content {
+    padding: 8px 12px;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.75);
 }
 
 .submenu-empty {
