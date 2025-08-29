@@ -243,8 +243,8 @@ export default {
     display: flex;
     align-items: center;
     font-size: 16px;
-    width: 250px; /* 固定宽度 */
-    min-width: 250px; /* 防止压缩 */
+    width: 200px; /* 固定宽度 */
+    min-width: 200px; /* 防止压缩 */
     flex-shrink: 0; /* 不允许收缩 */
 }
 
@@ -287,8 +287,8 @@ export default {
     align-items: center;
     justify-content: space-between;
     font-size: 16px;
-    width: 250px; /* 固定宽度 */
-    min-width: 250px; /* 防止压缩 */
+    width: 200px; /* 固定宽度 */
+    min-width: 200px; /* 防止压缩 */
     flex-shrink: 0; /* 不允许收缩 */
 }
 
@@ -359,8 +359,8 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     border-left: 3px solid transparent;
-    width: 250px; /* 固定宽度 */
-    min-width: 250px; /* 防止压缩 */
+    width: 180px; /* 固定宽度 */
+    min-width: 180px; /* 防止压缩 */
     flex-shrink: 0; /* 不允许收缩 */
 }
 
