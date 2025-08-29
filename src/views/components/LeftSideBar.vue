@@ -44,7 +44,19 @@
                         :title="item.title"
                         @click="handleMenuSelect('file-list', item)"
                     >
-                        <span>{{ item.title }}</span>
+                        <!-- 编辑状态显示输入框 -->
+                        <input
+                            v-if="editingItem && editingItem.id === item.id"
+                            ref="editInput"
+                            v-model="editingTitle"
+                            class="edit-input"
+                            @blur="saveEdit"
+                            @keyup.enter="saveEdit"
+                            @click.stop
+                        />
+                        <!-- 非编辑状态显示文本 -->
+                        <span v-else>{{ item.title }}</span>
+                        
                         <div class="dot-icon-wrapper" @click.stop="showDotPopover(item, $event)">
                             <img class="submenu-dot-icon" src="@/icons/dot.png" alt="更多操作" />
                             <!-- 弹窗 -->
@@ -75,7 +87,7 @@
 </template>
 
 <script>
-import { deleteDocument, getDocuments } from '@/api/documents';
+import { deleteDocument, getDocuments, updateDocument } from '@/api/documents';
 import eventBus from '@/utils/eventBus';
 import { toRaw } from 'vue';
 
@@ -93,7 +105,9 @@ export default {
             isCollapsed: false, // 新增：侧边栏收缩状态
             showText: true, // 新增：控制文字显示的状态（现在不再需要，但保留以避免报错）
             showPopover: false, // 控制弹窗显示
-            popoverItem: null // 当前弹窗关联的文档项
+            popoverItem: null, // 当前弹窗关联的文档项
+            editingItem: null, // 当前正在编辑的文档项
+            editingTitle: '' // 编辑时的临时标题
         }
     },
     async created() {
@@ -200,9 +214,77 @@ export default {
 
         // 新增：处理重命名
         handleRename(item) {
-            console.log('重命名文件:', item);
-            // TODO: 实现重命名逻辑
+            // 关闭弹窗
             this.closePopover();
+            
+            // 进入编辑模式
+            this.editingItem = item;
+            this.editingTitle = item.title;
+            
+            // 在下一个tick中聚焦输入框
+            this.$nextTick(() => {
+                if (this.$refs.editInput && this.$refs.editInput.length > 0) {
+                    const input = this.$refs.editInput.find(el => el);
+                    if (input) {
+                        input.focus();
+                        input.select(); // 选中所有文本
+                    }
+                }
+            });
+        },
+
+        // 新增：保存编辑
+        async saveEdit() {
+            if (!this.editingItem) return;
+
+            // 如果标题没有改变，直接退出编辑模式
+            if (this.editingTitle.trim() === this.editingItem.title) {
+                this.exitEdit();
+                return;
+            }
+
+            // 如果标题为空，不保存
+            if (!this.editingTitle.trim()) {
+                alert('文档标题不能为空');
+                return;
+            }
+
+            try {
+                // 调用更新API
+                await updateDocument(this.editingItem.id, {
+                    title: this.editingTitle.trim()
+                });
+
+                // 更新本地文档列表
+                const index = this.documents.findIndex(doc => doc.id === this.editingItem.id);
+                if (index > -1) {
+                    this.documents[index].title = this.editingTitle.trim();
+                }
+
+                // 如果编辑的是当前选中文件，同步更新selectedFile
+                if (this.selectedFile && this.selectedFile.id === this.editingItem.id) {
+                    this.selectedFile.title = this.editingTitle.trim();
+                    // 通知其他组件文件标题已更新
+                    eventBus.emit('file-title-updated', {
+                        item: this.selectedFile,
+                        newTitle: this.editingTitle.trim()
+                    });
+                }
+
+                console.log('文档重命名成功:', this.editingTitle.trim());
+                this.exitEdit();
+
+            } catch (error) {
+                console.error('重命名文档失败:', error);
+                alert('重命名失败，请重试。');
+                // 不退出编辑模式，让用户可以重试
+            }
+        },
+
+        // 新增：退出编辑模式
+        exitEdit() {
+            this.editingItem = null;
+            this.editingTitle = '';
         },
 
         // 新增：处理删除
@@ -473,6 +555,24 @@ export default {
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* 编辑输入框样式 */
+.edit-input {
+    flex: 1;
+    border: 1px solid #409EFF;
+    border-radius: 3px;
+    padding: 2px 8px;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.65);
+    background-color: #fff;
+    outline: none;
+    margin-right: 8px;
+}
+
+.edit-input:focus {
+    border-color: #409EFF;
+    box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
 }
 
 .submenu-dot-icon {
