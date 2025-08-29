@@ -1,6 +1,6 @@
 <template>
-    <div class="left-side">
-        <nav class="sidebar-menu">
+    <div class="left-side" :class="{ collapsed: isCollapsed }">
+        <nav class="sidebar-menu" :class="{ collapsed: isCollapsed }">
             <!-- 展开/收缩控制按钮 -->
             <div class="menu-item collapse-control" @click="toggleSidebar">
                 <img class="collapse-icon" src="@/icons/sidebar.png" alt="展开收缩" />
@@ -58,7 +58,7 @@ import { toRaw } from 'vue';
 
 export default {
     name: 'LeftSideBar',
-    emits: ['menu-select'],
+    emits: ['menu-select', 'sidebar-toggle'],
     data() {
         return {
             activeMenu: 'home',
@@ -66,7 +66,8 @@ export default {
             selectedFile: null,
             openSubmenus: ['files'], // 默认展开文件管理菜单
             loading: false,
-            error: null
+            error: null,
+            isCollapsed: false // 新增：侧边栏收缩状态
         }
     },
     async created() {
@@ -121,8 +122,10 @@ export default {
 
         // 新增：切换侧边栏展开/收缩状态
         toggleSidebar() {
-            console.log('点击了展开/收缩按钮');
-            // TODO: 实现展开/收缩逻辑
+            this.isCollapsed = !this.isCollapsed;
+            console.log('侧边栏状态:', this.isCollapsed ? '收缩' : '展开');
+            // 向父组件发送状态变化事件
+            this.$emit('sidebar-toggle', this.isCollapsed);
         }
     }
 }
@@ -136,6 +139,12 @@ export default {
     box-shadow: 2px 0 6px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
+    transition: width 0.3s ease;
+}
+
+/* 收缩状态的left-side */
+.left-side.collapsed {
+    width: 72px;
 }
 
 .sidebar-menu {
@@ -144,6 +153,13 @@ export default {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
+    transition: all 0.3s ease;
+}
+
+/* 收缩状态的sidebar-menu */
+.sidebar-menu.collapsed {
+    width: 56px;
+    overflow: hidden;
 }
 
 /* 自定义侧边栏滚动条样式 */
@@ -168,7 +184,7 @@ export default {
 .menu-item {
     height: 50px;
     line-height: 50px;
-    padding: 0 24px;
+    padding: 0 16px;
     color: rgba(0, 0, 0, 0.75);
     cursor: pointer;
     border-left: 3px solid transparent;
@@ -207,7 +223,7 @@ export default {
 .menu-header {
     height: 50px;
     line-height: 50px;
-    padding: 0 24px;
+    padding: 0 16px;
     color: rgba(0, 0, 0, 0.75);
     cursor: pointer;
     border-left: 3px solid transparent;
@@ -225,7 +241,7 @@ export default {
 .menu-icon {
     width: 24px;
     height: 24px;
-    margin-right: 10px;
+    margin-right: 14px;
 }
 
 .submenu-arrow {
