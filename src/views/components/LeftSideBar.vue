@@ -52,8 +52,14 @@
                                 v-if="showPopover && popoverItem && popoverItem.id === item.id" 
                                 class="dot-popover"
                             >
-                                <div class="popover-content">
-                                    这是一个弹窗
+                                <div class="popover-item" @click.stop="handleRename(item)">
+                                    <img class="popover-icon" src="@/icons/edit.png" alt="重命名" />
+                                    <span class="popover-text">重命名</span>
+                                </div>
+                                <div class="popover-divider"></div>
+                                <div class="popover-item delete-item" @click.stop="handleDelete(item)">
+                                    <img class="popover-icon" src="@/icons/trash.png" alt="删除" />
+                                    <span class="popover-text">删除</span>
                                 </div>
                             </div>
                         </div>
@@ -190,6 +196,20 @@ export default {
         closePopover() {
             this.showPopover = false;
             this.popoverItem = null;
+        },
+
+        // 新增：处理重命名
+        handleRename(item) {
+            console.log('重命名文件:', item);
+            // TODO: 实现重命名逻辑
+            this.closePopover();
+        },
+
+        // 新增：处理删除
+        handleDelete(item) {
+            console.log('删除文件:', item);
+            // TODO: 实现删除逻辑
+            this.closePopover();
         }
     }
 }
@@ -461,10 +481,51 @@ export default {
     right: 0;
     background: white;
     border: 1px solid #e4e7ed;
-    border-radius: 4px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-    z-index: 2000; /* 提高z-index值 */
-    min-width: 120px;
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    z-index: 2000;
+    min-width: 108px;
+    padding: 6px 0;
+}
+
+.popover-item {
+    height: 16px;
+    display: flex;
+    padding: 4px 16px;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.popover-item:hover {
+    background-color: #f5f7fa;
+}
+
+.popover-item.delete-item {
+    color: #f56c6c;
+}
+
+.popover-item.delete-item:hover {
+    background-color: #fef0f0;
+}
+
+.popover-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.popover-text {
+    font-size: 14px;
+    font-weight: 400;
+    flex: 1;
+}
+
+.popover-divider {
+    height: 1px;
+    background-color: #e4e7ed;
+    margin: 4px 0;
 }
 
 .popover-content {
