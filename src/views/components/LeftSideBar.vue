@@ -4,6 +4,7 @@
             <!-- 展开/收缩控制按钮 -->
             <div class="menu-item collapse-control" @click="toggleSidebar">
                 <img class="collapse-icon" src="@/icons/sidebar.png" alt="展开收缩" />
+                <span class="menu-title"></span>
             </div>
 
             <!-- 搜索菜单 -->
@@ -242,8 +243,8 @@ export default {
     display: flex;
     align-items: center;
     font-size: 16px;
-    width: 200px; /* 固定宽度 */
-    min-width: 200px; /* 防止压缩 */
+    width: 250px; /* 固定宽度 */
+    min-width: 250px; /* 防止压缩 */
     flex-shrink: 0; /* 不允许收缩 */
 }
 
@@ -265,6 +266,7 @@ export default {
 .collapse-icon {
     width: 24px;
     height: 24px;
+    margin-right: 10px; /* 与其他menu-icon保持一致的右边距 */
     transition: transform 0.3s ease;
 }
 
@@ -285,8 +287,8 @@ export default {
     align-items: center;
     justify-content: space-between;
     font-size: 16px;
-    width: 200px; /* 固定宽度 */
-    min-width: 200px; /* 防止压缩 */
+    width: 250px; /* 固定宽度 */
+    min-width: 250px; /* 防止压缩 */
     flex-shrink: 0; /* 不允许收缩 */
 }
 
@@ -357,8 +359,8 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     border-left: 3px solid transparent;
-    width: 180px; /* 固定宽度 */
-    min-width: 180px; /* 防止压缩 */
+    width: 250px; /* 固定宽度 */
+    min-width: 250px; /* 防止压缩 */
     flex-shrink: 0; /* 不允许收缩 */
 }
 
