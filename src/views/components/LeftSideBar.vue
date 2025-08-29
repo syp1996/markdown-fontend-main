@@ -40,6 +40,7 @@
                         v-for="item in documents" 
                         :key="item.id"
                         class="submenu-item" 
+                        :class="{ 'has-active-popover': showPopover && popoverItem && popoverItem.id === item.id }"
                         :title="item.title"
                         @click="handleMenuSelect('file-list', item)"
                     >
@@ -400,12 +401,13 @@ export default {
     align-items: center;
     justify-content: space-between;
     white-space: nowrap;
-    overflow: hidden;
+    overflow: visible; /* 改为可见，让弹窗能够显示出来 */
     text-overflow: ellipsis;
     border-left: 3px solid transparent;
     width: 180px; /* 固定宽度 */
     min-width: 180px; /* 防止压缩 */
     flex-shrink: 0; /* 不允许收缩 */
+    position: relative; /* 添加相对定位 */
 }
 
 .submenu-item:hover {
@@ -435,6 +437,17 @@ export default {
     position: relative;
     display: flex;
     align-items: center;
+    z-index: 1500; /* 给包装器也设置z-index */
+}
+
+/* 确保有弹窗的submenu-item层级更高 */
+.submenu-item:has(.dot-popover) {
+    z-index: 1600;
+}
+
+/* 如果浏览器不支持:has，使用JavaScript类控制 */
+.submenu-item.has-active-popover {
+    z-index: 1600;
 }
 
 .submenu-item:hover .submenu-dot-icon {
@@ -450,7 +463,7 @@ export default {
     border: 1px solid #e4e7ed;
     border-radius: 4px;
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
+    z-index: 2000; /* 提高z-index值 */
     min-width: 120px;
 }
 
@@ -458,6 +471,8 @@ export default {
     padding: 8px 12px;
     font-size: 14px;
     color: rgba(0, 0, 0, 0.75);
+    position: relative;
+    z-index: 2001; /* 内容也设置高z-index */
 }
 
 .submenu-empty {
