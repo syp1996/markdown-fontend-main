@@ -1,6 +1,11 @@
 <template>
     <div class="left-side">
         <nav class="sidebar-menu">
+            <!-- 展开/收缩控制按钮 -->
+            <div class="menu-item collapse-control" @click="toggleSidebar">
+                <img class="collapse-icon" src="@/icons/sidebar.png" alt="展开收缩" />
+            </div>
+
             <!-- 搜索菜单 -->
             <div class="menu-item" @click="handleMenuSelect('search')">
                 <img class="menu-icon" src="@/icons/search.png" alt="搜索图标" />
@@ -112,6 +117,12 @@ export default {
         // 刷新文档列表的方法
         async refreshDocuments() {
             await this.loadDocuments();
+        },
+
+        // 新增：切换侧边栏展开/收缩状态
+        toggleSidebar() {
+            console.log('点击了展开/收缩按钮');
+            // TODO: 实现展开/收缩逻辑
         }
     }
 }
@@ -175,6 +186,21 @@ export default {
     background-color: rgba(64, 158, 255, 0.05);
     border-left-color: #409EFF;
     color: rgba(64, 158, 255, 0.95);
+}
+
+/* 展开/收缩控制按钮样式 */
+.collapse-control {
+    justify-content: flex-start;
+}
+
+.collapse-icon {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s ease;
+}
+
+.collapse-control:hover .collapse-icon {
+    color: #409EFF;
 }
 
 /* 菜单组样式 */
