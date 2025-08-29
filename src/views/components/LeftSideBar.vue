@@ -440,8 +440,8 @@ export default {
 }
 
 .collapse-icon {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     margin-right: 10px; /* 与其他menu-icon保持一致的右边距 */
     transition: transform 0.3s ease;
 }
