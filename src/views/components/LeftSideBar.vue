@@ -75,7 +75,7 @@
 </template>
 
 <script>
-import { getDocuments } from '@/api/documents';
+import { deleteDocument, getDocuments } from '@/api/documents';
 import eventBus from '@/utils/eventBus';
 import { toRaw } from 'vue';
 
@@ -206,10 +206,39 @@ export default {
         },
 
         // 新增：处理删除
-        handleDelete(item) {
-            console.log('删除文件:', item);
-            // TODO: 实现删除逻辑
-            this.closePopover();
+        async handleDelete(item) {
+            try {
+                // 显示确认对话框
+                const confirmDelete = confirm(`确定要删除文档 "${item.title}" 吗？此操作不可撤销。`);
+                if (!confirmDelete) {
+                    this.closePopover();
+                    return;
+                }
+
+                // 调用删除API
+                await deleteDocument(item.id);
+                
+                // 删除成功后，从本地文档列表中移除
+                const index = this.documents.findIndex(doc => doc.id === item.id);
+                if (index > -1) {
+                    this.documents.splice(index, 1);
+                }
+
+                // 如果删除的是当前选中的文件，清除选中状态
+                if (this.selectedFile && this.selectedFile.id === item.id) {
+                    this.selectedFile = null;
+                    // 通知其他组件文件已被删除
+                    eventBus.emit('file-deleted', { deletedItem: item });
+                }
+
+                console.log('文档删除成功:', item.title);
+                this.closePopover();
+                
+            } catch (error) {
+                console.error('删除文档失败:', error);
+                alert('删除文档失败，请重试。');
+                this.closePopover();
+            }
         }
     }
 }
