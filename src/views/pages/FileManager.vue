@@ -172,7 +172,7 @@ export default {
           // 如果没有content，设置空内容
           this.fileContent = ''
         }
-        this.saveStatus = '已保存'
+        this.saveStatus = ''
         console.log('FileManager: 文件内容加载完成', file.title)
       } catch (error) {
         console.error('加载文件内容失败：', error)
