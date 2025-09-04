@@ -63,3 +63,14 @@ export function uploadDocument(data) {
     }
   })
 }
+
+// 搜索文档
+export function searchDocuments(keyword) {
+  return request({
+    url: '/documents/search',
+    method: 'get',
+    params: {
+      keyword
+    }
+  })
+}

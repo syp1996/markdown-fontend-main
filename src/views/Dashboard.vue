@@ -5,6 +5,12 @@
       <LeftSideBar class="left-side" @menu-select="handleMenuSelect"/>
       <MainContent class="main-content"/>
     </div>
+    <!-- 搜索弹窗 -->
+    <SearchModal 
+      :visible="showSearchModal" 
+      @close="closeSearchModal"
+      @select-result="handleSearchResult"
+    />
   </div>
 </template>
 
@@ -14,13 +20,15 @@ import { logout } from '@/api/user'
 import LeftSideBar from './components/LeftSideBar.vue'
 import MainContent from './components/MainContent.vue'
 import Topbar from './components/Topbar.vue'
+import SearchModal from '@/components/SearchModal.vue'
 
 export default {
   name: 'DashboardPage',
   components: {
       LeftSideBar,
       Topbar,
-      MainContent
+      MainContent,
+      SearchModal
   },
   data() {
       return {
@@ -28,6 +36,7 @@ export default {
       activeMenu: 'home',
       userInfo: {},
       currentDate: '',
+      showSearchModal: false, // 控制搜索弹窗显示
       stats: {
         totalFiles: 25,
         recentFiles: 8,
@@ -103,6 +112,11 @@ export default {
       
       // 根据菜单选择导航到相应的路由
       switch (menuKey) {
+        case 'search':
+          // 打开搜索弹窗
+          this.showSearchModal = true
+          break
+
         case 'home':
           this.$router.push('/dashboard/home')
           break
@@ -146,6 +160,19 @@ export default {
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         .replace(/`(.*?)`/g, '<code>$1</code>')
         .replace(/\n/g, '<br>')
+    },
+
+    // 关闭搜索弹窗
+    closeSearchModal() {
+      this.showSearchModal = false
+    },
+
+    // 处理搜索结果选择
+    handleSearchResult(result) {
+      console.log('选中搜索结果:', result)
+      // 导航到文件管理页面并选中该文件
+      this.$router.push('/dashboard/file-manager')
+      // 如果结果有ID，可以进一步处理文件选择逻辑
     }
   }
 }
