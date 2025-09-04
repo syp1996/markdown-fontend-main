@@ -138,19 +138,20 @@ export default {
                 const rawItem = toRaw(item);
 
                 // 如果当前不在文件管理页面，先跳转到文件管理页面
-                // 注意：这里需要根据你的实际路由路径调整
-                if (this.$route.path !== '/file-manager' && this.$route.path !== '/pages/file-manager') {
+                if (this.$route.path !== '/dashboard/file-manager') {
                     // 先跳转到文件管理页面
-                    this.$router.push('/pages/file-manager').then(() => {
-                        // 跳转完成后再发送文件选择事件
-                        this.$nextTick(() => {
+                    this.$router.push('/dashboard/file-manager').then(() => {
+                        // 跳转完成后等待组件完全加载再发送文件选择事件
+                        setTimeout(() => {
                             console.log('路由跳转完成，发送文件选择事件:', rawItem);
                             eventBus.emit('file-selected', { rawItem });
-                        });
+                        }, 100); // 增加延迟确保组件完全加载
                     }).catch(err => {
-                        console.warn('路由跳转失败，尝试直接发送事件:', err);
-                        // 如果路由跳转失败，直接发送事件
-                        eventBus.emit('file-selected', { rawItem });
+                        console.warn('路由跳转失败:', err);
+                        // 如果路由跳转失败，可能是已经在目标页面，直接发送事件
+                        setTimeout(() => {
+                            eventBus.emit('file-selected', { rawItem });
+                        }, 50);
                     });
                 } else {
                     // 如果已经在文件管理页面，直接发送事件

@@ -235,8 +235,29 @@ export default {
     // 选择搜索结果
     selectResult(result) {
       this.$emit('select-result', result)
-      // 通知文件被选中
-      eventBus.emit('file-selected', { rawItem: result })
+      
+      // 检查当前路由，确保在文件管理页面后再发送文件选择事件
+      if (this.$route && this.$route.path !== '/dashboard/file-manager') {
+        // 如果不在文件管理页面，先跳转
+        this.$router.push('/dashboard/file-manager').then(() => {
+          // 跳转完成后等待组件加载再发送事件
+          setTimeout(() => {
+            console.log('搜索结果：路由跳转完成，发送文件选择事件:', result)
+            eventBus.emit('file-selected', { rawItem: result })
+          }, 100)
+        }).catch(err => {
+          console.warn('搜索结果：路由跳转失败:', err)
+          // 如果跳转失败，延迟后直接发送事件
+          setTimeout(() => {
+            eventBus.emit('file-selected', { rawItem: result })
+          }, 50)
+        })
+      } else {
+        // 如果已经在文件管理页面，直接发送事件
+        console.log('搜索结果：已在文件管理页面，直接发送文件选择事件:', result)
+        eventBus.emit('file-selected', { rawItem: result })
+      }
+      
       this.closeModal()
     },
 
