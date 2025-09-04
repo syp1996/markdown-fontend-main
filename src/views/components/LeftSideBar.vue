@@ -45,7 +45,11 @@
                         <input v-if="editingItem && editingItem.id === item.id" ref="editInput" v-model="editingTitle"
                             class="edit-input" @blur="saveEdit" @keyup.enter="saveEdit" @click.stop />
                         <!-- 非编辑状态显示文本 -->
-                        <span v-else>{{ item.title }}</span>
+                        <span v-else 
+                              :class="{ 'typing-animation': isAnimatingTitle && animatingItemId === item.id }"
+                              :data-full-text="item.title">
+                            {{ getDisplayTitle(item) }}
+                        </span>
 
                         <div class="dot-icon-wrapper" @click.stop="showDotPopover(item, $event)">
                             <img class="submenu-dot-icon" src="@/icons/dot.png" alt="更多操作" />
@@ -94,7 +98,12 @@ export default {
             showPopover: false, // 控制弹窗显示
             popoverItem: null, // 当前弹窗关联的文档项
             editingItem: null, // 当前正在编辑的文档项
-            editingTitle: '' // 编辑时的临时标题
+            editingTitle: '', // 编辑时的临时标题
+            // 标题动画相关
+            isAnimatingTitle: false, // 是否正在播放标题动画
+            animatingItemId: null, // 正在动画的项目ID
+            displayTitles: {}, // 存储每个项目的显示标题
+            animationTimer: null // 动画定时器
         }
     },
     async created() {
@@ -114,6 +123,10 @@ export default {
         // 组件销毁前移除监听器
         document.removeEventListener('click', this.closePopover);
         this.cleanupTitleChangeListener();
+        // 清理动画定时器
+        if (this.animationTimer) {
+            clearTimeout(this.animationTimer);
+        }
     },
     methods: {
         async loadDocuments() {
@@ -403,19 +416,74 @@ export default {
             if (data && data.fileId && data.newTitle) {
                 console.log('LeftSideBar: 接收到标题变化事件', data);
                 
-                // 找到对应的文档并更新标题
+                // 找到对应的文档
                 const docIndex = this.documents.findIndex(doc => doc.id === data.fileId);
                 if (docIndex > -1) {
-                    this.documents[docIndex].title = data.newTitle;
+                    // 启动打字机动画效果
+                    this.startTypingAnimation(data.fileId, data.newTitle);
                     
                     // 如果当前选中的是这个文档，也更新selectedFile
                     if (this.selectedFile && this.selectedFile.id === data.fileId) {
                         this.selectedFile.title = data.newTitle;
                     }
                     
-                    console.log('LeftSideBar: 文档标题已更新', data.newTitle);
+                    console.log('LeftSideBar: 开始标题动画效果', data.newTitle);
                 }
             }
+        },
+
+        // 新增：获取显示的标题
+        getDisplayTitle(item) {
+            // 如果正在动画且是当前项目，返回部分标题
+            if (this.isAnimatingTitle && this.animatingItemId === item.id) {
+                return this.displayTitles[item.id] || '';
+            }
+            // 否则返回完整标题
+            return item.title || '';
+        },
+
+        // 新增：开始打字机动画
+        startTypingAnimation(fileId, newTitle) {
+            // 如果已经有动画在进行，先清除
+            if (this.animationTimer) {
+                clearTimeout(this.animationTimer);
+            }
+
+            // 设置动画状态
+            this.isAnimatingTitle = true;
+            this.animatingItemId = fileId;
+            this.displayTitles[fileId] = '';
+
+            // 执行逐字显示动画
+            let currentIndex = 0;
+            const typeNextChar = () => {
+                if (currentIndex < newTitle.length) {
+                    this.displayTitles[fileId] = newTitle.substring(0, currentIndex + 1);
+                    this.$forceUpdate(); // 强制更新视图
+                    currentIndex++;
+                    
+                    // 每个字符之间的延迟时间（毫秒）
+                    const charDelay = 50; // 50ms一个字符，类似Notion的速度
+                    this.animationTimer = setTimeout(typeNextChar, charDelay);
+                } else {
+                    // 动画完成，更新文档标题并清除动画状态
+                    const docIndex = this.documents.findIndex(doc => doc.id === fileId);
+                    if (docIndex > -1) {
+                        this.documents[docIndex].title = newTitle;
+                    }
+                    
+                    // 清除动画状态
+                    this.isAnimatingTitle = false;
+                    this.animatingItemId = null;
+                    delete this.displayTitles[fileId];
+                    this.animationTimer = null;
+                    
+                    console.log('LeftSideBar: 标题动画完成', newTitle);
+                }
+            };
+
+            // 开始动画
+            typeNextChar();
         }
     }
 }
@@ -662,6 +730,27 @@ export default {
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* 打字机动画效果 */
+.submenu-item span.typing-animation {
+    position: relative;
+}
+
+.submenu-item span.typing-animation::after {
+    content: '|';
+    color: #409EFF;
+    animation: cursor-blink 1s infinite;
+    margin-left: 1px;
+}
+
+@keyframes cursor-blink {
+    0%, 50% {
+        opacity: 1;
+    }
+    51%, 100% {
+        opacity: 0;
+    }
 }
 
 /* 编辑输入框样式 */

@@ -509,6 +509,7 @@ export default {
       // 文档标题
       documentTitle: '',
       titleSaveTimer: null,
+      titleSyncTimer: null, // 标题同步延迟定时器
     }
   },
   computed: {
@@ -539,6 +540,11 @@ export default {
     if (this.titleSaveTimer) {
       clearTimeout(this.titleSaveTimer)
       this.titleSaveTimer = null
+    }
+    // 清理标题同步定时器
+    if (this.titleSyncTimer) {
+      clearTimeout(this.titleSyncTimer)
+      this.titleSyncTimer = null
     }
   },
   watch: {
@@ -1139,8 +1145,15 @@ export default {
 
     // 标题相关方法
     handleTitleInput() {
-      // 实时发送标题变化事件
-      this.$emit('title-change', this.documentTitle)
+      // 清除之前的同步定时器
+      if (this.titleSyncTimer) {
+        clearTimeout(this.titleSyncTimer)
+      }
+      
+      // 延迟发送标题变化事件，避免频繁触发
+      this.titleSyncTimer = setTimeout(() => {
+        this.$emit('title-change', this.documentTitle)
+      }, 500) // 500ms后同步到侧边栏
       
       // 如果启用了自动保存且有文档ID，延迟保存标题
       if (this.autoSave && this.documentId) {
@@ -1149,7 +1162,13 @@ export default {
     },
 
     handleTitleBlur() {
-      // 失焦时确保标题被保存
+      // 清除延迟定时器，立即同步标题
+      if (this.titleSyncTimer) {
+        clearTimeout(this.titleSyncTimer)
+        this.titleSyncTimer = null
+      }
+      
+      // 失焦时立即发送标题变化事件
       this.$emit('title-change', this.documentTitle)
       
       // 如果启用了自动保存且有文档ID，立即保存标题
