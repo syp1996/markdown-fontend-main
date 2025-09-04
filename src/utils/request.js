@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import authManager from './auth'
 
 // 创建axios实例
 const service = axios.create({
@@ -11,7 +12,7 @@ const service = axios.create({
 service.interceptors.request.use(
   config => {
     // 在发送请求之前做些什么
-    const token = localStorage.getItem('token')
+    const token = authManager.getToken()
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
     }
@@ -43,7 +44,7 @@ service.interceptors.response.use(
         
         // 401: 未登录或token过期
         if (res.code === 401) {
-          localStorage.removeItem('token')
+          authManager.clearAll()
           location.reload()
         }
         return Promise.reject(new Error(res.message || '请求失败'))

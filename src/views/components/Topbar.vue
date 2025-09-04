@@ -22,6 +22,8 @@
 </template>
 
 <script>
+import authManager from '@/utils/auth'
+
 export default {
     name: 'AppTopbar',
     data() {
@@ -35,9 +37,8 @@ export default {
     methods: {
         getUserInfo() {
             try {
-                const userInfoStr = localStorage.getItem('userInfo')
-                if (userInfoStr) {
-                    const userInfo = JSON.parse(userInfoStr)
+                const userInfo = authManager.getUserInfo()
+                if (userInfo) {
                     this.username = userInfo.username || userInfo.name || '用户'
                 }
             } catch (error) {

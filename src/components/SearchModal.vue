@@ -99,6 +99,7 @@
 <script>
 import { searchDocuments } from '@/api/documents'
 import eventBus from '@/utils/eventBus'
+import DOMPurify from 'dompurify'
 
 export default {
   name: 'SearchModal',
@@ -277,12 +278,25 @@ export default {
       }
     },
 
-    // 高亮搜索关键词
+    // 高亮搜索关键词（安全版本，防止XSS）
     highlightText(text, keyword) {
-      if (!text || !keyword) return text
+      if (!text || !keyword) return DOMPurify.sanitize(text || '')
       
-      const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
-      return text.replace(regex, '<mark>$1</mark>')
+      // 首先清理输入文本，防止现有的恶意内容
+      const cleanText = DOMPurify.sanitize(text, { ALLOWED_TAGS: [] })
+      
+      // 转义特殊正则字符
+      const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const regex = new RegExp(`(${escapedKeyword})`, 'gi')
+      
+      // 生成高亮HTML
+      const highlightedText = cleanText.replace(regex, '<mark>$1</mark>')
+      
+      // 最后清理生成的HTML，只允许mark标签
+      return DOMPurify.sanitize(highlightedText, { 
+        ALLOWED_TAGS: ['mark'],
+        ALLOWED_ATTR: [] 
+      })
     },
 
     // 格式化日期

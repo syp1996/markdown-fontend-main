@@ -43,6 +43,7 @@
 
 <script>
 import { login } from '@/api/user'
+import authManager from '@/utils/auth'
 
 export default {
   name: 'HomePage',
@@ -101,9 +102,9 @@ export default {
             console.log('提取的用户信息:', userInfo)
             
             if (token) {
-              localStorage.setItem('token', token)
-              localStorage.setItem('userInfo', JSON.stringify(userInfo))
-              console.log('Token和用户信息已保存到localStorage')
+              authManager.setToken(token)
+              authManager.setUserInfo(userInfo)
+              console.log('Token和用户信息已保存到安全存储')
               
               // 跳转到Dashboard页面
               console.log('准备跳转到Dashboard...')

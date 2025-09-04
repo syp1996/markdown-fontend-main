@@ -2,7 +2,29 @@
   "permissions": {
     "allow": [
       "Bash(npm run serve:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Read(/F:\\markdown-fontend-main\\src/**)",
+      "Read(/F:\\markdown-fontend-main\\src/**)",
+      "Read(/F:\\markdown-fontend-main\\src/**)",
+      "Read(/F:\\markdown-fontend-main\\src/**)",
+      "Read(/F:\\markdown-fontend-main/**)",
+      "Read(/F:\\markdown-fontend-main\\src/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\router/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\store/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\components/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\api/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\utils/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\views\\components/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\views\\components/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\components/**)",
+      "Read(/F:\\markdown-fontend-main/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\utils/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\views/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\views/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\views/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\views/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\views\\components/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\views\\components/**)"
     ],
     "deny": [],
     "ask": []

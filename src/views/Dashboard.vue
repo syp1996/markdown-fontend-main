@@ -21,6 +21,7 @@ import LeftSideBar from './components/LeftSideBar.vue'
 import MainContent from './components/MainContent.vue'
 import Topbar from './components/Topbar.vue'
 import SearchModal from '@/components/SearchModal.vue'
+import authManager from '@/utils/auth'
 
 export default {
   name: 'DashboardPage',
@@ -71,9 +72,9 @@ export default {
     },
     getUserInfoFromStorage() {
       try {
-        const userInfoStr = localStorage.getItem('userInfo')
-        if (userInfoStr) {
-          this.userInfo = JSON.parse(userInfoStr)
+        const userInfo = authManager.getUserInfo()
+        if (userInfo) {
+          this.userInfo = userInfo
         }
       } catch (error) {
         console.error('解析用户信息失败：', error)
@@ -97,13 +98,11 @@ export default {
       try {
         await logout()
         this.$message.success('退出登录成功')
-        localStorage.removeItem('token')
-        localStorage.removeItem('userInfo')
+        authManager.clearAll()
         this.$router.push('/')
       } catch (error) {
         console.error('退出登录失败：', error)
-        localStorage.removeItem('token')
-        localStorage.removeItem('userInfo')
+        authManager.clearAll()
         this.$router.push('/')
       }
     },

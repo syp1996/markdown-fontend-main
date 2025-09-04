@@ -5,11 +5,13 @@
 </template>
 
 <script>
+import authManager from '@/utils/auth'
+
 export default {
   name: 'App',
   computed: {
     isLoggedIn() {
-      return !!localStorage.getItem('token')
+      return authManager.isAuthenticated()
     }
   }
 }
