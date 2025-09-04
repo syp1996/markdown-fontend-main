@@ -24,7 +24,14 @@
       "Read(/F:\\markdown-fontend-main\\src\\views/**)",
       "Read(/F:\\markdown-fontend-main\\src\\views/**)",
       "Read(/F:\\markdown-fontend-main\\src\\views\\components/**)",
-      "Read(/F:\\markdown-fontend-main\\src\\views\\components/**)"
+      "Read(/F:\\markdown-fontend-main\\src\\views\\components/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\components/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\views\\components/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\views\\components/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\views\\pages/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\views\\pages/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\utils/**)",
+      "Read(/F:\\markdown-fontend-main\\src\\store/**)"
     ],
     "deny": [],
     "ask": []
