@@ -15,8 +15,27 @@
           <div class="file-info">
             <h3 class="file-title">{{ selectedFile.title }}</h3>
             <div class="file-meta">
-              <span class="file-type">{{ getFileTypeName(selectedFile.type || 'document') }}</span>
-              <span class="file-modified">最后修改: {{ formatDate(selectedFile.updated_at || selectedFile.created_at) }}</span>
+              <div class="file-meta-left">
+                <span class="file-type">{{ getFileTypeName(selectedFile.type || 'document') }}</span>
+                <span class="file-modified">最后修改: {{ formatDate(selectedFile.updated_at || selectedFile.created_at) }}</span>
+              </div>
+              <div class="file-meta-right">
+                <div v-if="saveStatus" class="save-status" :class="{ 'saving': saveStatus === '正在保存...' }">
+                  <!-- 保存中的加载动画 -->
+                  <div v-if="saveStatus === '正在保存...'" class="save-spinner">
+                    <svg class="spinner-icon" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.3"/>
+                      <path d="M12 2 A 10 10 0 0 1 22 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </svg>
+                  </div>
+                  <!-- 保存状态文本 -->
+                  <span class="save-text" :class="{
+                    'saved': saveStatus === '已保存',
+                    'saving': saveStatus === '正在保存...',
+                    'error': saveStatus === '保存失败'
+                  }">{{ saveStatus }}</span>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -61,7 +80,7 @@ export default {
       // 新增：文件选择相关状态
       selectedFile: null,
       fileContent: '',
-      saveStatus: '已保存'
+      saveStatus: ''
     }
   },
   created() {
@@ -153,6 +172,7 @@ export default {
           // 如果没有content，设置空内容
           this.fileContent = ''
         }
+        this.saveStatus = '已保存'
         console.log('FileManager: 文件内容加载完成', file.title)
       } catch (error) {
         console.error('加载文件内容失败：', error)
@@ -171,7 +191,11 @@ export default {
     handleSaveSuccess(data) {
       this.saveStatus = '已保存'
       console.log('文件保存成功:', data)
-      this.$message.success('文件保存成功')
+      
+      // 保存成功状态显示2秒后隐藏
+      setTimeout(() => {
+        this.saveStatus = ''
+      }, 2000)
     },
 
     // 新增：处理保存失败
@@ -179,6 +203,11 @@ export default {
       this.saveStatus = '保存失败'
       console.error('文件保存失败:', data.error)
       this.$message.error('文件保存失败，请重试')
+      
+      // 保存失败状态显示3秒后隐藏
+      setTimeout(() => {
+        this.saveStatus = ''
+      }, 3000)
     },
 
     // 新增：返回文件列表
@@ -374,10 +403,21 @@ export default {
 
 .file-meta {
   display: flex;
-  gap: 16px;
+  justify-content: space-between;
   align-items: center;
   font-size: 14px;
   color: #909399;
+}
+
+.file-meta-left {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.file-meta-right {
+  display: flex;
+  align-items: center;
 }
 
 .file-type {
@@ -385,6 +425,59 @@ export default {
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 12px;
+}
+
+/* 保存状态样式 */
+.save-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.save-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.spinner-icon {
+  width: 16px;
+  height: 16px;
+  color: #6c7293;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.save-text {
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.save-text.saved {
+  color: #52c41a;
+}
+
+.save-text.saving {
+  color: #6c7293;
+}
+
+.save-text.error {
+  color: #f5222d;
 }
 
 .editor-wrapper {
@@ -468,7 +561,18 @@ export default {
   .file-meta {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .file-meta-left {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 8px;
+  }
+  
+  .save-status {
+    align-self: flex-end;
+    font-size: 12px;
   }
 }
 </style>
