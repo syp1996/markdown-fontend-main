@@ -99,6 +99,8 @@ export default {
     },
     async created() {
         await this.loadDocuments();
+        // 监听来自编辑器的标题变化事件
+        this.setupTitleChangeListener();
     },
     mounted() {
         // 添加全局点击监听，点击外部关闭弹窗
@@ -111,6 +113,7 @@ export default {
     beforeUnmount() {
         // 组件销毁前移除监听器
         document.removeEventListener('click', this.closePopover);
+        this.cleanupTitleChangeListener();
     },
     methods: {
         async loadDocuments() {
@@ -382,6 +385,36 @@ export default {
                 console.error('删除文档失败:', error);
                 alert('删除文档失败，请重试。');
                 this.closePopover();
+            }
+        },
+
+        // 新增：设置标题变化监听器
+        setupTitleChangeListener() {
+            eventBus.on('title-changed-from-editor', this.handleTitleChangeFromEditor);
+        },
+
+        // 新增：清理标题变化监听器
+        cleanupTitleChangeListener() {
+            eventBus.off('title-changed-from-editor', this.handleTitleChangeFromEditor);
+        },
+
+        // 新增：处理来自编辑器的标题变化
+        handleTitleChangeFromEditor(data) {
+            if (data && data.fileId && data.newTitle) {
+                console.log('LeftSideBar: 接收到标题变化事件', data);
+                
+                // 找到对应的文档并更新标题
+                const docIndex = this.documents.findIndex(doc => doc.id === data.fileId);
+                if (docIndex > -1) {
+                    this.documents[docIndex].title = data.newTitle;
+                    
+                    // 如果当前选中的是这个文档，也更新selectedFile
+                    if (this.selectedFile && this.selectedFile.id === data.fileId) {
+                        this.selectedFile.title = data.newTitle;
+                    }
+                    
+                    console.log('LeftSideBar: 文档标题已更新', data.newTitle);
+                }
             }
         }
     }

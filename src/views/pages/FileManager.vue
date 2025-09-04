@@ -13,7 +13,7 @@
         <!-- 选中文件时显示编辑器 -->
         <div v-else class="file-editor-container">
           <div class="file-info">
-            <h3 class="file-title">{{ selectedFile.title }}</h3>
+            <!-- <h3 class="file-title">{{ selectedFile.title }}</h3> -->
             <div class="file-meta">
               <div class="file-meta-left">
                 <span class="file-type">{{ getFileTypeName(selectedFile.type || 'document') }}</span>
@@ -43,6 +43,7 @@
           <div class="editor-wrapper">
             <TiptapEditor
               :model-value="fileContent"
+              :title="selectedFile.title"
               :document-id="selectedFile.id"
               :auto-save="true"
               :auto-save-delay="3000"
@@ -51,6 +52,7 @@
               height="100%"
               placeholder="开始编辑文档..."
               @update:model-value="handleContentChange"
+              @title-change="handleTitleChange"
               @save-success="handleSaveSuccess"
               @save-error="handleSaveError"
             />
@@ -185,6 +187,22 @@ export default {
     handleContentChange(content) {
       this.fileContent = content
       this.saveStatus = '正在保存...'
+    },
+
+    // 新增：处理标题变化
+    handleTitleChange(newTitle) {
+      if (this.selectedFile && newTitle !== this.selectedFile.title) {
+        console.log('FileManager: 标题变化', newTitle)
+        
+        // 更新本地文件标题
+        this.selectedFile.title = newTitle
+        
+        // 通过事件总线通知左侧菜单更新标题
+        eventBus.emit('title-changed-from-editor', {
+          fileId: this.selectedFile.id,
+          newTitle: newTitle
+        })
+      }
     },
 
     // 新增：处理保存成功

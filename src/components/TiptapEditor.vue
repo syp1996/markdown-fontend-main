@@ -285,6 +285,17 @@
         🗑️ 清空
       </button>
     </div>
+    <!-- 文档标题输入区域 -->
+    <div class="document-title-container">
+      <input 
+        v-model="documentTitle"
+        class="document-title-input"
+        placeholder="文档标题"
+        @input="handleTitleInput"
+        @blur="handleTitleBlur"
+      />
+    </div>
+    
     <editor-content 
       :editor="editor" 
       class="editor-content"
@@ -473,9 +484,14 @@ export default {
     enableUserInputAutoSave: {
       type: Boolean,
       default: true
+    },
+    // 文档标题
+    title: {
+      type: String,
+      default: ''
     }
   },
-  emits: ['update:modelValue', 'change', 'focus', 'blur', 'save-success', 'save-error'],
+  emits: ['update:modelValue', 'change', 'focus', 'blur', 'save-success', 'save-error', 'title-change'],
   data() {
     return {
       editor: null,
@@ -490,6 +506,9 @@ export default {
       // 用户输入监听相关状态
       userInputTimer: null,
       isUserActive: false,
+      // 文档标题
+      documentTitle: '',
+      titleSaveTimer: null,
     }
   },
   computed: {
@@ -505,6 +524,8 @@ export default {
     this.$nextTick(() => {
       this.setLastSavedContent()
     })
+    // 初始化标题
+    this.documentTitle = this.title
   },
   beforeUnmount() {
     if (this.editor) {
@@ -514,6 +535,11 @@ export default {
     this.clearAutoSaveTimer()
     // 清理用户输入监听定时器
     this.clearUserInputTimer()
+    // 清理标题保存定时器
+    if (this.titleSaveTimer) {
+      clearTimeout(this.titleSaveTimer)
+      this.titleSaveTimer = null
+    }
   },
   watch: {
     modelValue(newValue) {
@@ -528,6 +554,14 @@ export default {
         }
       },
       deep: true,
+      immediate: true
+    },
+    title: {
+      handler(newValue) {
+        if (newValue !== this.documentTitle) {
+          this.documentTitle = newValue
+        }
+      },
       immediate: true
     }
   },
@@ -1101,6 +1135,59 @@ export default {
     forceSave() {
       this.clearUserInputTimer()
       this.onUserInactive()
+    },
+
+    // 标题相关方法
+    handleTitleInput() {
+      // 实时发送标题变化事件
+      this.$emit('title-change', this.documentTitle)
+      
+      // 如果启用了自动保存且有文档ID，延迟保存标题
+      if (this.autoSave && this.documentId) {
+        this.handleTitleAutoSave()
+      }
+    },
+
+    handleTitleBlur() {
+      // 失焦时确保标题被保存
+      this.$emit('title-change', this.documentTitle)
+      
+      // 如果启用了自动保存且有文档ID，立即保存标题
+      if (this.autoSave && this.documentId) {
+        this.saveTitle()
+      }
+    },
+
+    // 处理标题自动保存
+    handleTitleAutoSave() {
+      // 清除之前的标题保存定时器
+      if (this.titleSaveTimer) {
+        clearTimeout(this.titleSaveTimer)
+      }
+      
+      // 设置新的定时器
+      this.titleSaveTimer = setTimeout(() => {
+        this.saveTitle()
+      }, 1000) // 1秒延迟保存标题
+    },
+
+    // 保存标题到后端
+    async saveTitle() {
+      if (!this.documentId || !this.documentTitle.trim()) {
+        return
+      }
+
+      try {
+        // 调用 API 保存标题
+        await updateDocument(this.documentId, {
+          title: this.documentTitle.trim()
+        })
+        
+        console.log('标题保存成功:', this.documentTitle)
+        
+      } catch (error) {
+        console.error('标题保存失败:', error)
+      }
     }
   }
 }
@@ -1164,6 +1251,44 @@ export default {
   height: 20px;
   background: #ddd;
   margin: 0 8px;
+}
+
+/* 文档标题区域样式 */
+.document-title-container {
+  border-bottom: 1px solid #e8e8e8;
+  background: white;
+  padding: 16px 12px;
+}
+
+.document-title-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #37352f;
+  background: transparent;
+  padding: 3px 2px;
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  resize: none;
+  overflow: hidden;
+  min-height: 44px;
+}
+
+.document-title-input::placeholder {
+  color: #a8a8a8;
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+.document-title-input:focus {
+  box-shadow: none;
+}
+
+/* 当标题为空时的特殊样式 */
+.document-title-input:placeholder-shown {
+  color: #a8a8a8;
 }
 
 /* 颜色选择器样式 */
@@ -1587,6 +1712,15 @@ export default {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+  .document-title-container {
+    padding: 12px 10px;
+  }
+  
+  .document-title-input {
+    font-size: 28px;
+    min-height: 40px;
+  }
+  
   .toolbar {
     padding: 6px 8px;
   }
