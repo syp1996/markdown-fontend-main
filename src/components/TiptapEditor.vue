@@ -1442,7 +1442,8 @@ export default {
 }
 
 :deep(.tiptap-editor-instance:focus) {
-  box-shadow: inset 0 0 0 2px rgba(0, 122, 204, 0.2);
+  outline: none;
+  box-shadow: none;
 }
 
 /* 占位符样式 */
