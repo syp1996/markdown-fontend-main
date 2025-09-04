@@ -31,46 +31,26 @@
                 <div class="menu-header" @click="toggleSubmenu('files')">
                     <img class="menu-icon" src="@/icons/files.png" alt="文件管理图标" />
                     <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">文件管理</span>
-                    <img 
-                        class="submenu-arrow" 
-                        :class="{ 
-                            'expanded': openSubmenus.includes('files'),
-                            'fade-in': showText, 
-                            'fade-out': !showText 
-                        }"
-                        src="@/icons/CaretDown.png" 
-                        alt="展开箭头"
-                    />
+                    <img class="submenu-arrow" :class="{
+                        'expanded': openSubmenus.includes('files'),
+                        'fade-in': showText,
+                        'fade-out': !showText
+                    }" src="@/icons/CaretDown.png" alt="展开箭头" />
                 </div>
                 <div class="submenu" :class="{ 'expanded': openSubmenus.includes('files') && showText }">
-                    <div 
-                        v-for="item in documents" 
-                        :key="item.id"
-                        class="submenu-item" 
+                    <div v-for="item in documents" :key="item.id" class="submenu-item"
                         :class="{ 'has-active-popover': showPopover && popoverItem && popoverItem.id === item.id }"
-                        :title="item.title"
-                        @click="handleMenuSelect('file-list', item)"
-                    >
+                        :title="item.title" @click="handleMenuSelect('file-list', item)">
                         <!-- 编辑状态显示输入框 -->
-                        <input
-                            v-if="editingItem && editingItem.id === item.id"
-                            ref="editInput"
-                            v-model="editingTitle"
-                            class="edit-input"
-                            @blur="saveEdit"
-                            @keyup.enter="saveEdit"
-                            @click.stop
-                        />
+                        <input v-if="editingItem && editingItem.id === item.id" ref="editInput" v-model="editingTitle"
+                            class="edit-input" @blur="saveEdit" @keyup.enter="saveEdit" @click.stop />
                         <!-- 非编辑状态显示文本 -->
                         <span v-else>{{ item.title }}</span>
-                        
+
                         <div class="dot-icon-wrapper" @click.stop="showDotPopover(item, $event)">
                             <img class="submenu-dot-icon" src="@/icons/dot.png" alt="更多操作" />
                             <!-- 弹窗 -->
-                            <div 
-                                v-if="showPopover && popoverItem && popoverItem.id === item.id" 
-                                class="dot-popover"
-                            >
+                            <div v-if="showPopover && popoverItem && popoverItem.id === item.id" class="dot-popover">
                                 <div class="popover-item" @click.stop="handleRename(item)">
                                     <img class="popover-icon" src="@/icons/edit.png" alt="重命名" />
                                     <span class="popover-text">重命名</span>
@@ -147,16 +127,36 @@ export default {
                 this.loading = false;
             }
         },
+        // 在 LeftSideBar.vue 中，替换原有的 handleMenuSelect 方法
 
         handleMenuSelect(index, item = null) {
             this.activeMenu = index;
-            
+
             if (item) {
                 this.selectedFile = item;
                 // 使用 toRaw 获取原始对象
                 const rawItem = toRaw(item);
-                // 发射文件选择事件
-                eventBus.emit('file-selected', { rawItem });
+
+                // 如果当前不在文件管理页面，先跳转到文件管理页面
+                // 注意：这里需要根据你的实际路由路径调整
+                if (this.$route.path !== '/file-manager' && this.$route.path !== '/pages/file-manager') {
+                    // 先跳转到文件管理页面
+                    this.$router.push('/pages/file-manager').then(() => {
+                        // 跳转完成后再发送文件选择事件
+                        this.$nextTick(() => {
+                            console.log('路由跳转完成，发送文件选择事件:', rawItem);
+                            eventBus.emit('file-selected', { rawItem });
+                        });
+                    }).catch(err => {
+                        console.warn('路由跳转失败，尝试直接发送事件:', err);
+                        // 如果路由跳转失败，直接发送事件
+                        eventBus.emit('file-selected', { rawItem });
+                    });
+                } else {
+                    // 如果已经在文件管理页面，直接发送事件
+                    console.log('已在文件管理页面，直接发送文件选择事件:', rawItem);
+                    eventBus.emit('file-selected', { rawItem });
+                }
             } else {
                 this.selectedFile = null;
             }
@@ -194,7 +194,7 @@ export default {
                     this.isCollapsed = true;
                 }, 50);
             }
-            
+
             console.log('侧边栏状态:', this.isCollapsed ? '收缩' : '展开');
             // 向父组件发送状态变化事件
             this.$emit('sidebar-toggle', this.isCollapsed);
@@ -223,11 +223,11 @@ export default {
         handleRename(item) {
             // 关闭弹窗
             this.closePopover();
-            
+
             // 进入编辑模式
             this.editingItem = item;
             this.editingTitle = item.title;
-            
+
             // 在下一个tick中聚焦输入框
             this.$nextTick(() => {
                 if (this.$refs.editInput && this.$refs.editInput.length > 0) {
@@ -312,19 +312,19 @@ export default {
                 if (newDoc && newDoc.id) {
                     // 将新文档添加到本地文档列表开头
                     this.documents.unshift(newDoc);
-                    
+
                     console.log('文档创建成功:', newDoc);
-                    
+
                     // 确保文件管理菜单是展开状态，以便用户看到新文档
                     if (!this.openSubmenus.includes('files')) {
                         this.openSubmenus.push('files');
                     }
-                    
+
                     // 等待DOM更新后选中新建的文档
                     this.$nextTick(() => {
                         this.handleMenuSelect('file-list', newDoc);
                     });
-                    
+
                     // 通知其他组件新文档已创建
                     eventBus.emit('document-created', { newDoc });
                 } else {
@@ -333,7 +333,7 @@ export default {
 
             } catch (error) {
                 console.error('创建文档失败:', error);
-                
+
                 // 根据错误类型提供更友好的提示
                 let errorMessage = '创建文档失败，请重试。';
                 if (error.response && error.response.status === 401) {
@@ -343,7 +343,7 @@ export default {
                 } else if (error.response && error.response.status >= 500) {
                     errorMessage = '服务器错误，请稍后重试。';
                 }
-                
+
                 alert(errorMessage);
             }
         },
@@ -360,7 +360,7 @@ export default {
 
                 // 调用删除API
                 await deleteDocument(item.id);
-                
+
                 // 删除成功后，从本地文档列表中移除
                 const index = this.documents.findIndex(doc => doc.id === item.id);
                 if (index > -1) {
@@ -376,7 +376,7 @@ export default {
 
                 console.log('文档删除成功:', item.title);
                 this.closePopover();
-                
+
             } catch (error) {
                 console.error('删除文档失败:', error);
                 alert('删除文档失败，请重试。');
@@ -480,9 +480,12 @@ export default {
     display: flex;
     align-items: center;
     font-size: 16px;
-    width: 200px; /* 固定宽度 */
-    min-width: 200px; /* 防止压缩 */
-    flex-shrink: 0; /* 不允许收缩 */
+    width: 200px;
+    /* 固定宽度 */
+    min-width: 200px;
+    /* 防止压缩 */
+    flex-shrink: 0;
+    /* 不允许收缩 */
 }
 
 .menu-item:hover {
@@ -503,7 +506,8 @@ export default {
 .collapse-icon {
     width: 24px;
     height: 24px;
-    margin-right: 10px; /* 与其他menu-icon保持一致的右边距 */
+    margin-right: 10px;
+    /* 与其他menu-icon保持一致的右边距 */
     transition: transform 0.3s ease;
 }
 
@@ -524,9 +528,12 @@ export default {
     align-items: center;
     justify-content: space-between;
     font-size: 16px;
-    width: 200px; /* 固定宽度 */
-    min-width: 200px; /* 防止压缩 */
-    flex-shrink: 0; /* 不允许收缩 */
+    width: 200px;
+    /* 固定宽度 */
+    min-width: 200px;
+    /* 防止压缩 */
+    flex-shrink: 0;
+    /* 不允许收缩 */
 }
 
 .menu-header:hover {
@@ -593,13 +600,18 @@ export default {
     align-items: center;
     justify-content: space-between;
     white-space: nowrap;
-    overflow: visible; /* 改为可见，让弹窗能够显示出来 */
+    overflow: visible;
+    /* 改为可见，让弹窗能够显示出来 */
     text-overflow: ellipsis;
     border-left: 3px solid transparent;
-    width: 180px; /* 固定宽度 */
-    min-width: 180px; /* 防止压缩 */
-    flex-shrink: 0; /* 不允许收缩 */
-    position: relative; /* 添加相对定位 */
+    width: 180px;
+    /* 固定宽度 */
+    min-width: 180px;
+    /* 防止压缩 */
+    flex-shrink: 0;
+    /* 不允许收缩 */
+    position: relative;
+    /* 添加相对定位 */
 }
 
 .submenu-item:hover {
@@ -647,7 +659,8 @@ export default {
     position: relative;
     display: flex;
     align-items: center;
-    z-index: 1500; /* 给包装器也设置z-index */
+    z-index: 1500;
+    /* 给包装器也设置z-index */
 }
 
 /* 确保有弹窗的submenu-item层级更高 */
@@ -723,7 +736,8 @@ export default {
     font-size: 14px;
     color: rgba(0, 0, 0, 0.75);
     position: relative;
-    z-index: 2001; /* 内容也设置高z-index */
+    z-index: 2001;
+    /* 内容也设置高z-index */
 }
 
 .submenu-empty {
@@ -743,13 +757,13 @@ export default {
     .left-side {
         width: 200px;
     }
-    
+
     .menu-item,
     .menu-header {
         padding: 0 16px;
         font-size: 14px;
     }
-    
+
     .submenu-item {
         padding: 0 32px;
         font-size: 13px;
