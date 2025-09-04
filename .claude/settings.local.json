@@ -31,7 +31,9 @@
       "Read(/F:\\markdown-fontend-main\\src\\views\\pages/**)",
       "Read(/F:\\markdown-fontend-main\\src\\views\\pages/**)",
       "Read(/F:\\markdown-fontend-main\\src\\utils/**)",
-      "Read(/F:\\markdown-fontend-main\\src\\store/**)"
+      "Read(/F:\\markdown-fontend-main\\src\\store/**)",
+      "Read(/F:\\markdown-fontend-main/**)",
+      "Read(/F:\\markdown-fontend-main/**)"
     ],
     "deny": [],
     "ask": []
