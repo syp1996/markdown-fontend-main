@@ -1430,12 +1430,15 @@ export default {
 /* Tiptap 编辑器样式 */
 :deep(.tiptap-editor-instance) {
   padding: 12px;
+  height: 100%;
   min-height: 100px;
   outline: none;
   font-size: 14px;
   line-height: 1.6;
   word-wrap: break-word;
   white-space: pre-wrap;
+  overflow-y: auto;
+  box-sizing: border-box;
 }
 
 :deep(.tiptap-editor-instance:focus) {
@@ -1753,6 +1756,9 @@ export default {
   :deep(.tiptap-editor-instance) {
     padding: 10px;
     font-size: 13px;
+    height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
   }
   
   :deep(.tiptap-editor-instance h1) {
