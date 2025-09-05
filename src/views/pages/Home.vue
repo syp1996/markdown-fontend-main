@@ -1,11 +1,6 @@
 <template>
     <div class="chat-page">
       <div v-if="messages.length === 0" class="welcome-container">
-        <div class="welcome-header">
-          <span>Free plan</span>
-          <a href="#" class="upgrade-link">Upgrade</a>
-        </div>
-  
         <h1 class="greeting-title">
           <span class="asterisk">*</span> Good morning, Kyrie
         </h1>
@@ -37,15 +32,6 @@
                 </svg>
               </button>
             </div>
-          </div>
-        </div>
-        
-        <div class="upgrade-prompt">
-          <span>Upgrade to connect your tools to Claude</span>
-          <div class="tool-icons">
-            <span>C</span>
-            <span>❐</span>
-            <span>></span>
           </div>
         </div>
       </div>
@@ -425,11 +411,12 @@ import { chatWithDeepSeekStream } from '@/api/deepseek'
     border: 1px solid #EAEAEA;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
     padding: 16px 20px;
+    box-sizing: border-box;
   }
   
   .welcome-input {
     min-height: 50px;
-    max-height: 200px; /* You can adjust this */
+    max-height: 200px;
     width: 100%;
     border: none;
     outline: none;
@@ -439,6 +426,7 @@ import { chatWithDeepSeekStream } from '@/api/deepseek'
     overflow-y: auto;
     word-wrap: break-word;
     white-space: pre-wrap;
+    box-sizing: border-box;
   }
   
   .welcome-input:empty:before {
