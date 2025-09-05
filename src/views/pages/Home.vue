@@ -315,12 +315,43 @@ import { chatWithDeepSeekStream } from '@/api/deepseek'
       
       formatMessage(content) {
         if (!content) return ''
-        return content
-          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-          .replace(/\*(.*?)\*/g, '<em>$1</em>')
-          .replace(/`([^`]+)`/g, '<code>$1</code>')
-          .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-          .replace(/\n/g, '<br>')
+        
+        let result = content
+        
+        // 处理代码块（优先处理，避免被其他规则干扰）
+        result = result.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+        
+        // 处理行内代码
+        result = result.replace(/`([^`]+)`/g, '<code>$1</code>')
+        
+        // 处理标题
+        result = result.replace(/^### (.*$)/gim, '<h3>$1</h3>')
+        result = result.replace(/^## (.*$)/gim, '<h2>$1</h2>')
+        result = result.replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        
+        // 处理粗体和斜体
+        result = result.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        result = result.replace(/\*(.*?)\*/g, '<em>$1</em>')
+        
+        // 处理无序列表
+        result = result.replace(/^\* (.*$)/gim, '<li>$1</li>')
+        result = result.replace(/^(\d+)\. (.*$)/gim, '<li>$2</li>')
+        
+        // 包装连续的列表项
+        result = result.replace(/(<li>.*<\/li>)/g, function(match) {
+          return '<ul>' + match + '</ul>'
+        })
+        
+        // 合并相邻的ul标签
+        result = result.replace(/<\/ul>\s*<ul>/g, '')
+        
+        // 处理引用
+        result = result.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>')
+        
+        // 处理换行
+        result = result.replace(/\n/g, '<br>')
+        
+        return result
       },
       
       formatTime(timestamp) {
@@ -530,6 +561,34 @@ import { chatWithDeepSeekStream } from '@/api/deepseek'
   
   .message-time { font-size: 12px; color: #c0c4cc; margin-top: 4px; text-align: right; }
   .message-item.user .message-time { text-align: left; }
+  
+  /* Markdown Styles */
+  /* 标题样式 */
+  .message-text :deep(h1) { font-size: 1.5em; font-weight: bold; margin: 16px 0 12px 0; color: #333; }
+  .message-text :deep(h2) { font-size: 1.3em; font-weight: bold; margin: 14px 0 10px 0; color: #333; }
+  .message-text :deep(h3) { font-size: 1.1em; font-weight: bold; margin: 12px 0 8px 0; color: #333; }
+  .message-item.user .message-text :deep(h1),
+  .message-item.user .message-text :deep(h2),
+  .message-item.user .message-text :deep(h3) { color: white; }
+  
+  /* 列表样式 */
+  .message-text :deep(ul) { margin: 8px 0; padding-left: 20px; }
+  .message-text :deep(li) { margin: 4px 0; list-style-type: disc; }
+  
+  /* 引用样式 */
+  .message-text :deep(blockquote) { 
+    margin: 8px 0; 
+    padding: 8px 12px; 
+    border-left: 4px solid #ddd; 
+    background: #f9f9f9; 
+    color: #666; 
+    font-style: italic; 
+  }
+  .message-item.user .message-text :deep(blockquote) { 
+    border-left-color: rgba(255, 255, 255, 0.5); 
+    background: rgba(255, 255, 255, 0.1); 
+    color: rgba(255, 255, 255, 0.9); 
+  }
   
   /* Code Block Styles */
   .message-text :deep(code) { background: #f5f7fa; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Monaco', monospace; font-size: 14px; }
