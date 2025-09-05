@@ -99,6 +99,7 @@
   
   <script>
   import { chatWithDeepSeekStream } from '@/api/deepseek'
+  import { chatSimple } from '@/api/ai'
   
   export default {
     name: 'HomePage',
@@ -128,7 +129,7 @@
         }
         
         this.messages.push(userMessage)
-        const messageToSend = this.currentMessage.trim()
+        const originalQuestion = this.currentMessage.trim()
         
         // 清空输入框
         this.currentMessage = ''
@@ -151,8 +152,42 @@
         this.isStreaming = true
         
         try {
+          // 第一步：调用知识库API获取增强提示词
+          let enhancedPrompt = originalQuestion
+          
+          try {
+            console.log('调用知识库API，原始问题:', originalQuestion)
+            const knowledgeResponse = await chatSimple(originalQuestion, {
+              use_knowledge_base: true,
+              similarity_threshold: 0.3,
+              top_k: 5
+            })
+            console.log('知识库API完整响应:', knowledgeResponse)
+            
+            // 根据后端返回格式提取增强提示词
+            if (knowledgeResponse && typeof knowledgeResponse === 'string') {
+              enhancedPrompt = knowledgeResponse
+            } else if (knowledgeResponse && knowledgeResponse.data) {
+              enhancedPrompt = knowledgeResponse.data
+            } else if (knowledgeResponse && knowledgeResponse.enhanced_prompt) {
+              enhancedPrompt = knowledgeResponse.enhanced_prompt
+            } else if (knowledgeResponse && knowledgeResponse.message) {
+              enhancedPrompt = knowledgeResponse.message
+            }
+            
+            console.log('提取的增强提示词:', enhancedPrompt)
+            console.log('增强提示词长度:', enhancedPrompt.length)
+          } catch (knowledgeError) {
+            console.error('知识库API调用失败详情:', knowledgeError)
+            console.error('错误响应数据:', knowledgeError.response?.data)
+            console.error('错误状态码:', knowledgeError.response?.status)
+            console.warn('使用原始问题继续对话')
+            // 如果知识库API失败，继续使用原始问题
+          }
+          
+          // 第二步：使用增强提示词调用DeepSeek API
           const response = await chatWithDeepSeekStream(
-            messageToSend, 
+            enhancedPrompt, 
             this.messages.slice(0, -1),
             (chunk) => {
               if (this.currentStreamingMessageIndex >= 0) {
