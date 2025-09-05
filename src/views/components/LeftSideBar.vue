@@ -1,76 +1,86 @@
 <template>
     <div class="left-side" :class="{ collapsed: isCollapsed }">
         <nav class="sidebar-menu" :class="{ collapsed: isCollapsed }">
-            <!-- 展开/收缩控制按钮 -->
-            <div class="menu-item collapse-control" @click="toggleSidebar">
-                <img class="collapse-icon" src="@/icons/sidebar.png" alt="展开收缩" />
-                <span class="menu-title"></span>
-            </div>
-
-            <!-- 新建文档菜单 -->
-            <div class="menu-item collapse-control" @click="handleCreateDocument" style="margin-top: 20px;">
-                <img class="collapse-icon" src="@/icons/add.png" alt="新建文档" />
-                <span class="menu-title"></span>
-                <!-- <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">新建文档</span> -->
-            </div>
-
-            <!-- 搜索菜单 -->
-            <div class="menu-item" @click="handleMenuSelect('search')">
-                <img class="menu-icon" src="@/icons/search.png" alt="搜索图标" />
-                <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">搜索</span>
-            </div>
-
-            <!-- 首页菜单 -->
-            <div class="menu-item" @click="handleMenuSelect('home')">
-                <img class="menu-icon" src="@/icons/home.png" alt="首页图标" />
-                <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">主页</span>
-            </div>
-
-            <!-- 文件管理 -->
-            <div class="menu-group">
-                <div class="menu-header" @click="toggleSubmenu('files')">
-                    <img class="menu-icon" src="@/icons/files.png" alt="文件管理图标" />
-                    <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">文件管理</span>
-                    <img class="submenu-arrow" :class="{
-                        'expanded': openSubmenus.includes('files'),
-                        'fade-in': showText,
-                        'fade-out': !showText
-                    }" src="@/icons/CaretDown.png" alt="展开箭头" />
+            <div class="menu-content">
+                <!-- 展开/收缩控制按钮 -->
+                <div class="menu-item collapse-control" @click="toggleSidebar">
+                    <img class="collapse-icon" src="@/icons/sidebar.png" alt="展开收缩" />
+                    <span class="menu-title"></span>
                 </div>
-                <div class="submenu" :class="{ 'expanded': openSubmenus.includes('files') && showText }">
-                    <div v-for="item in documents" :key="item.id" class="submenu-item"
-                        :class="{ 'has-active-popover': showPopover && popoverItem && popoverItem.id === item.id }"
-                        :title="item.title" @click="handleMenuSelect('file-list', item)">
-                        <!-- 编辑状态显示输入框 -->
-                        <input v-if="editingItem && editingItem.id === item.id" ref="editInput" v-model="editingTitle"
-                            class="edit-input" @blur="saveEdit" @keyup.enter="saveEdit" @click.stop />
-                        <!-- 非编辑状态显示文本 -->
-                        <span v-else 
-                              :class="{ 'typing-animation': isAnimatingTitle && animatingItemId === item.id }"
-                              :data-full-text="item.title">
-                            {{ getDisplayTitle(item) }}
-                        </span>
 
-                        <div class="dot-icon-wrapper" @click.stop="showDotPopover(item, $event)">
-                            <img class="submenu-dot-icon" src="@/icons/dot.png" alt="更多操作" />
-                            <!-- 弹窗 -->
-                            <div v-if="showPopover && popoverItem && popoverItem.id === item.id" class="dot-popover">
-                                <div class="popover-item" @click.stop="handleRename(item)">
-                                    <img class="popover-icon" src="@/icons/edit.png" alt="重命名" />
-                                    <span class="popover-text">重命名</span>
-                                </div>
-                                <div class="popover-divider"></div>
-                                <div class="popover-item delete-item" @click.stop="handleDelete(item)">
-                                    <img class="popover-icon" src="@/icons/trash.png" alt="删除" />
-                                    <span class="popover-text">删除</span>
+                <!-- 新建文档菜单 -->
+                <div class="menu-item collapse-control" @click="handleCreateDocument" style="margin-top: 20px;">
+                    <img class="collapse-icon" src="@/icons/add.png" alt="新建文档" />
+                    <span class="menu-title"></span>
+                    <!-- <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">新建文档</span> -->
+                </div>
+
+                <!-- 搜索菜单 -->
+                <div class="menu-item" @click="handleMenuSelect('search')">
+                    <img class="menu-icon" src="@/icons/search.png" alt="搜索图标" />
+                    <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">搜索</span>
+                </div>
+
+                <!-- 首页菜单 -->
+                <div class="menu-item" @click="handleMenuSelect('home')">
+                    <img class="menu-icon" src="@/icons/home.png" alt="首页图标" />
+                    <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">主页</span>
+                </div>
+
+                <!-- 文件管理 -->
+                <div class="menu-group">
+                    <div class="menu-header" @click="toggleSubmenu('files')">
+                        <img class="menu-icon" src="@/icons/files.png" alt="文件管理图标" />
+                        <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">文件管理</span>
+                        <img class="submenu-arrow" :class="{
+                            'expanded': openSubmenus.includes('files'),
+                            'fade-in': showText,
+                            'fade-out': !showText
+                        }" src="@/icons/CaretDown.png" alt="展开箭头" />
+                    </div>
+                    <div class="submenu" :class="{ 'expanded': openSubmenus.includes('files') && showText }">
+                        <div v-for="item in documents" :key="item.id" class="submenu-item"
+                            :class="{ 'has-active-popover': showPopover && popoverItem && popoverItem.id === item.id }"
+                            :title="item.title" @click="handleMenuSelect('file-list', item)">
+                            <!-- 编辑状态显示输入框 -->
+                            <input v-if="editingItem && editingItem.id === item.id" ref="editInput" v-model="editingTitle"
+                                class="edit-input" @blur="saveEdit" @keyup.enter="saveEdit" @click.stop />
+                            <!-- 非编辑状态显示文本 -->
+                            <span v-else 
+                                  :class="{ 'typing-animation': isAnimatingTitle && animatingItemId === item.id }"
+                                  :data-full-text="item.title">
+                                {{ getDisplayTitle(item) }}
+                            </span>
+
+                            <div class="dot-icon-wrapper" @click.stop="showDotPopover(item, $event)">
+                                <img class="submenu-dot-icon" src="@/icons/dot.png" alt="更多操作" />
+                                <!-- 弹窗 -->
+                                <div v-if="showPopover && popoverItem && popoverItem.id === item.id" class="dot-popover">
+                                    <div class="popover-item" @click.stop="handleRename(item)">
+                                        <img class="popover-icon" src="@/icons/edit.png" alt="重命名" />
+                                        <span class="popover-text">重命名</span>
+                                    </div>
+                                    <div class="popover-divider"></div>
+                                    <div class="popover-item delete-item" @click.stop="handleDelete(item)">
+                                        <img class="popover-icon" src="@/icons/trash.png" alt="删除" />
+                                        <span class="popover-text">删除</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <!-- 空状态提示 -->
+                        <div v-if="documents.length === 0" class="submenu-empty">
+                            暂无文件
+                        </div>
                     </div>
-                    <!-- 空状态提示 -->
-                    <div v-if="documents.length === 0" class="submenu-empty">
-                        暂无文件
-                    </div>
+                </div>
+            </div>
+
+            <!-- 设置菜单 -->
+            <div class="menu-bottom">
+                <div class="menu-item" @click="handleMenuSelect('settings')">
+                    <img class="menu-icon" src="@/icons/setting.png" alt="设置图标" />
+                    <span class="menu-title" :class="{ 'fade-in': showText, 'fade-out': !showText }">设置</span>
                 </div>
             </div>
         </nav>
@@ -509,15 +519,34 @@ export default {
     width: 100%;
     background-color: #FFFFFF;
     flex: 1;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
     overflow-x: hidden;
     transition: all 0.3s ease;
+}
+
+.menu-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.menu-bottom {
+    flex-shrink: 0;
+    padding-top: 8px;
 }
 
 /* 收缩状态的sidebar-menu */
 .sidebar-menu.collapsed {
     width: 56px;
     overflow: hidden;
+}
+
+.sidebar-menu.collapsed .menu-content {
+    overflow: hidden;
+}
+
+.sidebar-menu.collapsed .menu-bottom {
+    border-top: none;
 }
 
 /* 收缩状态下调整菜单项样式 */

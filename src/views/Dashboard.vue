@@ -120,6 +120,10 @@ export default {
           this.$router.push('/dashboard/home')
           break
 
+        case 'settings':
+          this.$router.push('/dashboard/settings')
+          break
+
         case 'file-list':
           // 文件列表处理
           this.$router.push('/dashboard/file-manager')

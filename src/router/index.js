@@ -3,6 +3,7 @@ import Dashboard from '../views/Dashboard.vue'
 import Home from '../views/Home.vue'
 import FileManager from '../views/pages/FileManager.vue'
 import HomePage from '../views/pages/Home.vue'
+import Settings from '../views/pages/Settings.vue'
 import authManager from '@/utils/auth'
 
 const routes = [
@@ -31,6 +32,11 @@ const routes = [
         path: 'file-manager',
         name: 'FileManager',
         component: FileManager
+      },
+      {
+        path: 'settings',
+        name: 'Settings',
+        component: Settings
       }
     ]
   }
