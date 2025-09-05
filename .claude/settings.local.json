@@ -33,7 +33,8 @@
       "Read(/F:\\markdown-fontend-main\\src\\utils/**)",
       "Read(/F:\\markdown-fontend-main\\src\\store/**)",
       "Read(/F:\\markdown-fontend-main/**)",
-      "Read(/F:\\markdown-fontend-main/**)"
+      "Read(/F:\\markdown-fontend-main/**)",
+      "Bash(npm install)"
     ],
     "deny": [],
     "ask": []
