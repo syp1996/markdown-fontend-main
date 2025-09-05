@@ -98,8 +98,8 @@
   </template>
   
   <script>
-  import { chatWithDeepSeekStream } from '@/api/deepseek'
   import { chatSimple } from '@/api/ai'
+import { chatWithDeepSeekStream } from '@/api/deepseek'
   
   export default {
     name: 'HomePage',
@@ -164,16 +164,7 @@
             })
             console.log('知识库API完整响应:', knowledgeResponse)
             
-            // 根据后端返回格式提取增强提示词
-            if (knowledgeResponse && typeof knowledgeResponse === 'string') {
-              enhancedPrompt = knowledgeResponse
-            } else if (knowledgeResponse && knowledgeResponse.data) {
-              enhancedPrompt = knowledgeResponse.data
-            } else if (knowledgeResponse && knowledgeResponse.enhanced_prompt) {
-              enhancedPrompt = knowledgeResponse.enhanced_prompt
-            } else if (knowledgeResponse && knowledgeResponse.message) {
-              enhancedPrompt = knowledgeResponse.message
-            }
+          enhancedPrompt = knowledgeResponse.prompt
             
             console.log('提取的增强提示词:', enhancedPrompt)
             console.log('增强提示词长度:', enhancedPrompt.length)
