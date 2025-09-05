@@ -186,7 +186,18 @@ import { chatWithDeepSeekStream } from '@/api/deepseek'
             })
             console.log('知识库API完整响应:', knowledgeResponse)
             
-          enhancedPrompt = knowledgeResponse.prompt
+            // 兼容不同返回结构：优先 rag_prompt，其次 prompt，再尝试 data 包裹
+            const extractedPrompt =
+              knowledgeResponse?.rag_prompt ||
+              knowledgeResponse?.prompt ||
+              knowledgeResponse?.data?.rag_prompt ||
+              knowledgeResponse?.data?.prompt
+
+            if (extractedPrompt && typeof extractedPrompt === 'string') {
+              enhancedPrompt = extractedPrompt
+            } else {
+              console.warn('未从知识库API响应中提取到增强提示词，使用原始问题')
+            }
             
             console.log('提取的增强提示词:', enhancedPrompt)
             console.log('增强提示词长度:', enhancedPrompt.length)

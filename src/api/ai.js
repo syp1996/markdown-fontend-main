@@ -1,11 +1,11 @@
 import request from '@/utils/request'
 
 /**
- * 知识库增强对话 - 简单版本
- * 调用后端API获取基于知识库的增强提示词
+ * 知识库增强对话（RAG 增强）
+ * 调用后端增强 RAG 接口获取增强提示词
  * @param {string} message - 用户问题
  * @param {object} options - 可选参数
- * @returns {Promise<string>} 增强的提示词
+ * @returns {Promise<object>} 后端响应数据
  */
 export function chatSimple(message, options = {}) {
   // 确保消息不为空并去除前后空格
@@ -26,10 +26,11 @@ export function chatSimple(message, options = {}) {
     top_k: options.top_k || 5
   }
   
-  console.log('发送知识库API请求数据:', JSON.stringify(requestData))
+  console.log('发送增强RAG API请求数据:', JSON.stringify(requestData))
   
   return request({
-    url: '/ai/chat-simple',
+    // 新接口：增强 RAG 对话
+    url: '/rag/enhanced/chat',
     method: 'post',
     data: requestData
   })
