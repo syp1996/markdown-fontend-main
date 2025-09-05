@@ -23,9 +23,26 @@
               <button class="icon-btn">⫯</button>
             </div>
             <div class="footer-right">
-              <button class="model-selector">
-                Claude Sonnet 4 <span class="arrow">↑</span>
-              </button>
+              <div class="model-selector-dropdown" @click="toggleModelDropdown">
+                <button class="model-selector">
+                  {{ selectedModel.name }} <span class="arrow" :class="{ 'expanded': showModelDropdown }">↓</span>
+                </button>
+                <div v-if="showModelDropdown" class="model-dropdown" @click.stop>
+                  <div 
+                    v-for="model in availableModels" 
+                    :key="model.id" 
+                    class="model-option"
+                    :class="{ 'selected': model.id === selectedModel.id }"
+                    @click="selectModel(model)"
+                  >
+                    <div class="model-info">
+                      <div class="model-name">{{ model.name }}</div>
+                      <div class="model-description">{{ model.description }}</div>
+                    </div>
+                    <div v-if="model.id === selectedModel.id" class="model-check">✓</div>
+                  </div>
+                </div>
+              </div>
               <button class="send-btn-welcome" @click="sendMessage" :disabled="!currentMessage.trim() || isLoading">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M21.0001 12L3.00006 12M21.0001 12L15.0001 6M21.0001 12L15.0001 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -97,11 +114,30 @@ import { chatWithDeepSeekStream } from '@/api/deepseek'
         isConnected: true,
         maxHeight: 100,
         isStreaming: false,
-        currentStreamingMessageIndex: -1
+        currentStreamingMessageIndex: -1,
+        showModelDropdown: false,
+        selectedModel: {
+          id: 'deepseek',
+          name: 'DeepSeek',
+          description: '高效的开源大模型，适合日常对话'
+        },
+        availableModels: [
+          {
+            id: 'deepseek',
+            name: 'DeepSeek',
+            description: '高效的开源大模型，适合日常对话'
+          }
+        ]
       }
     },
     mounted() {
       this.focusInput()
+      // 添加点击外部关闭下拉菜单的事件监听
+      document.addEventListener('click', this.handleOutsideClick)
+    },
+    beforeUnmount() {
+      // 清理事件监听
+      document.removeEventListener('click', this.handleOutsideClick)
     },
     methods: {
       // 发送消息
@@ -348,6 +384,24 @@ import { chatWithDeepSeekStream } from '@/api/deepseek'
         if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前'
         if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前'
         return timestamp.toLocaleDateString() + ' ' + timestamp.toLocaleTimeString().slice(0, 5)
+      },
+
+      // 模型下拉菜单相关方法
+      toggleModelDropdown() {
+        this.showModelDropdown = !this.showModelDropdown
+      },
+
+      selectModel(model) {
+        this.selectedModel = model
+        this.showModelDropdown = false
+        console.log('切换模型:', model.name)
+      },
+
+      handleOutsideClick(event) {
+        const dropdown = event.target.closest('.model-selector-dropdown')
+        if (!dropdown) {
+          this.showModelDropdown = false
+        }
       }
     }
   }
@@ -467,8 +521,99 @@ import { chatWithDeepSeekStream } from '@/api/deepseek'
   
   .model-selector .arrow {
     display: inline-block;
-    transform: rotate(180deg);
     margin-left: 6px;
+    transition: transform 0.2s ease;
+  }
+
+  .model-selector .arrow.expanded {
+    transform: rotate(180deg);
+  }
+
+  /* 模型下拉菜单样式 */
+  .model-selector-dropdown {
+    position: relative;
+    display: inline-block;
+  }
+
+  .model-dropdown {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #e1e5e9;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    min-width: 280px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    margin-bottom: 8px;
+    padding: 8px 0;
+  }
+
+  .model-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .model-option:last-child {
+    border-bottom: none;
+  }
+
+  .model-option:hover {
+    background-color: #f7f7f8;
+  }
+
+  .model-option.selected {
+    background-color: #f0f9ff;
+    border-left: 3px solid #0ea5e9;
+  }
+
+  .model-info {
+    flex: 1;
+  }
+
+  .model-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 2px;
+  }
+
+  .model-description {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.4;
+  }
+
+  .model-check {
+    color: #0ea5e9;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  /* 下拉菜单滚动条样式 */
+  .model-dropdown::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .model-dropdown::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  .model-dropdown::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+  }
+
+  .model-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
   }
   
   .send-btn-welcome {
