@@ -528,6 +528,12 @@ export default {
 .menu-content {
     flex: 1;
     overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.menu-content::-webkit-scrollbar {
+    display: none;
 }
 
 .menu-bottom {
