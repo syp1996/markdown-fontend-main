@@ -99,7 +99,7 @@ export default {
       this.loading = true
       try {
         const response = await getDocuments()
-        this.files = response.data || response.items || []
+        this.files = response.documents || response.data || response.items || []
         console.log('获取到的文档数据:', this.files) // 添加调试信息
         this.filterFiles()
       } catch (error) {

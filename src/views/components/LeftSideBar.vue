@@ -143,10 +143,15 @@ export default {
             try {
                 this.loading = true;
                 this.error = null;
+                console.log('LeftSideBar: 开始加载文档...');
                 const res = await getDocuments();
-                this.documents = res?.items || [];
+                console.log('LeftSideBar: API原始响应:', res);
+                this.documents = res?.documents || res?.data || res?.items || [];
+                console.log('LeftSideBar: 解析后的文档数据:', this.documents);
+                console.log('LeftSideBar: 文档数量:', this.documents.length);
             } catch (error) {
-                console.error('加载文档失败:', error);
+                console.error('LeftSideBar: 加载文档失败:', error);
+                console.error('LeftSideBar: 错误详情:', error.message);
                 this.error = '文档加载失败';
                 this.documents = [];
             } finally {
