@@ -23,8 +23,17 @@ export function chatSimple(message, options = {}) {
   const requestData = {
     message: trimmedMessage,
     use_knowledge_base: options.use_knowledge_base !== false, // 默认为true
-    similarity_threshold: options.similarity_threshold || 0.3,
-    top_k: options.top_k || 5
+    // 默认不做相似度过滤，避免误筛掉高相关片段
+    similarity_threshold: options.similarity_threshold ?? 0,
+    score_threshold: options.score_threshold ?? 0,
+    // 可选检索调优参数（按后端支持透传）
+    nprobe: options.nprobe ?? 16,
+    per_doc_max: options.per_doc_max ?? null,
+    mmr: options.mmr ?? false,
+    min_unique_docs: options.min_unique_docs ?? null,
+    rerank: options.rerank ?? null
+    // 不默认传 top_k，按需由调用方指定
+    // ...(options.top_k != null ? { top_k: options.top_k } : {})
   }
   
   console.log('发送增强RAG API请求数据:', JSON.stringify(requestData))
@@ -56,8 +65,17 @@ export async function askKnowledgeStream(message, options = {}, onChunk) {
   const requestData = {
     message: trimmedMessage,
     use_knowledge_base: options.use_knowledge_base !== false,
-    similarity_threshold: options.similarity_threshold || 0.3,
-    top_k: options.top_k || 5
+    // 默认不做相似度过滤，避免误筛
+    similarity_threshold: options.similarity_threshold ?? 0,
+    score_threshold: options.score_threshold ?? 0,
+    // 可选检索调优参数（按后端支持透传）
+    nprobe: options.nprobe ?? 16,
+    per_doc_max: options.per_doc_max ?? null,
+    mmr: options.mmr ?? false,
+    min_unique_docs: options.min_unique_docs ?? null,
+    rerank: options.rerank ?? null
+    // 不默认传 top_k，按需由调用方指定
+    // ...(options.top_k != null ? { top_k: options.top_k } : {})
   }
 
   // 计算基础 API 前缀，保持与 axios 一致
