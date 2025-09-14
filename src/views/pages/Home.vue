@@ -62,7 +62,8 @@
             </div>
             <div class="message-content">
               <div class="message-text">
-                <span v-html="formatMessage(message.content)"></span>
+                <span v-if="message.isStreaming" class="streaming-raw" v-text="message.content"></span>
+                <span v-else v-html="formatMessage(message.content)"></span>
                 <span v-if="message.isStreaming" class="streaming-cursor">|</span>
               </div>
               <div class="message-time">{{ formatTime(message.timestamp) }}</div>
@@ -101,8 +102,7 @@
   </template>
   
   <script>
-  import { chatSimple } from '@/api/ai'
-import { chatWithDeepSeekStream } from '@/api/deepseek'
+  import { askKnowledgeStream } from '@/api/ai'
   
   export default {
     name: 'HomePage',
@@ -174,45 +174,14 @@ import { chatWithDeepSeekStream } from '@/api/deepseek'
         this.isStreaming = true
         
         try {
-          // 第一步：调用知识库API获取增强提示词
-          let enhancedPrompt = originalQuestion
-          
-          try {
-            console.log('调用知识库API，原始问题:', originalQuestion)
-            const knowledgeResponse = await chatSimple(originalQuestion, {
+          // 直接调用知识库流式接口，不再切换到不带召回内容的生成
+          const full = await askKnowledgeStream(
+            originalQuestion,
+            {
               use_knowledge_base: true,
-              similarity_threshold: 0.3,
-              top_k: 5
-            })
-            console.log('知识库API完整响应:', knowledgeResponse)
-            
-            // 兼容不同返回结构：优先 rag_prompt，其次 prompt，再尝试 data 包裹
-            const extractedPrompt =
-              knowledgeResponse?.rag_prompt ||
-              knowledgeResponse?.prompt ||
-              knowledgeResponse?.data?.rag_prompt ||
-              knowledgeResponse?.data?.prompt
-
-            if (extractedPrompt && typeof extractedPrompt === 'string') {
-              enhancedPrompt = extractedPrompt
-            } else {
-              console.warn('未从知识库API响应中提取到增强提示词，使用原始问题')
-            }
-            
-            console.log('提取的增强提示词:', enhancedPrompt)
-            console.log('增强提示词长度:', enhancedPrompt.length)
-          } catch (knowledgeError) {
-            console.error('知识库API调用失败详情:', knowledgeError)
-            console.error('错误响应数据:', knowledgeError.response?.data)
-            console.error('错误状态码:', knowledgeError.response?.status)
-            console.warn('使用原始问题继续对话')
-            // 如果知识库API失败，继续使用原始问题
-          }
-          
-          // 第二步：使用增强提示词调用DeepSeek API
-          const response = await chatWithDeepSeekStream(
-            enhancedPrompt, 
-            this.messages.slice(0, -1),
+            //   similarity_threshold: 0.3,
+            //   top_k: 5
+            },
             (chunk) => {
               if (this.currentStreamingMessageIndex >= 0) {
                 this.messages[this.currentStreamingMessageIndex].content += chunk
@@ -220,12 +189,12 @@ import { chatWithDeepSeekStream } from '@/api/deepseek'
               }
             }
           )
-          
+
           if (this.currentStreamingMessageIndex >= 0) {
-            this.messages[this.currentStreamingMessageIndex].content = response
+            this.messages[this.currentStreamingMessageIndex].content = full
             this.messages[this.currentStreamingMessageIndex].isStreaming = false
           }
-          
+
         } catch (error) {
           console.error('发送消息失败:', error)
           if (this.currentStreamingMessageIndex >= 0) {
@@ -239,7 +208,7 @@ import { chatWithDeepSeekStream } from '@/api/deepseek'
             }
             this.messages.push(errorMessage)
           }
-          this.$message.error('发送消息失败: ' + (error.message || '未知错误'))
+          this.$message.error('知识库问答失败: ' + (error.message || '未知错误'))
         } finally {
           this.isLoading = false
           this.isStreaming = false
@@ -702,6 +671,7 @@ import { chatWithDeepSeekStream } from '@/api/deepseek'
   .message-content { flex: 1; min-width: 0; }
   .message-text { background: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); word-wrap: break-word; line-height: 1.6; }
   .message-item.user .message-text { background: #409eff; color: white; }
+  .message-text .streaming-raw { white-space: pre-wrap; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif; }
   
   .message-time { font-size: 12px; color: #c0c4cc; margin-top: 4px; text-align: right; }
   .message-item.user .message-time { text-align: left; }

@@ -5,7 +5,8 @@ import authManager from './auth'
 // 创建axios实例
 const service = axios.create({
   baseURL: process.env.NODE_ENV === 'development' ? 'http://localhost:8000/api' : process.env.VUE_APP_BASE_API,
-  timeout: 10000
+  // 取消超时限制，等待后端长时间生成
+  timeout: 0
 })
 
 // 请求拦截器
