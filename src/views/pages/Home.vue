@@ -61,7 +61,6 @@
             <div class="message-content">
               <div class="message-text">
                 <span v-html="formatMessage(message.content)"></span>
-                <span v-if="message.isStreaming" class="streaming-cursor">|</span>
               </div>
               <div class="message-time">{{ formatTime(message.timestamp) }}</div>
             </div>
@@ -938,9 +937,6 @@
   .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
   .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
   @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-10px); opacity: 1; } }
-  
-  .streaming-cursor { display: inline-block; animation: blink 1s infinite; font-weight: bold; color: #409eff; margin-left: 2px; }
-  @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
   
   /* Chat View Input Area */
   .chat-input-container { 
