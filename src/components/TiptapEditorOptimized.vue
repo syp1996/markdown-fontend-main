@@ -834,7 +834,7 @@ export default {
 /* TipTap 编辑器样式 */
 :deep(.tiptap-editor-instance) {
   padding: 12px;
-  height: 100%;
+  height: auto;
   min-height: 100px;
   outline: none;
   box-shadow: none;
@@ -842,7 +842,7 @@ export default {
   line-height: 1.6;
   word-wrap: break-word;
   white-space: pre-wrap;
-  overflow-y: auto;
+  overflow-y: visible;
   box-sizing: border-box;
 }
 

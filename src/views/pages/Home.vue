@@ -645,16 +645,12 @@
   /* --- Chat View Styles (Original styles adapted) --- */
   .chat-messages {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: visible;
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 16px;
   }
-  .chat-messages::-webkit-scrollbar { width: 6px; }
-  .chat-messages::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
-  .chat-messages::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
-  .chat-messages::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
   
   .message-item { display: flex; gap: 12px; max-width: 80%; animation: fadeInUp 0.3s ease; }
   .message-item.user { align-self: flex-end; flex-direction: row-reverse; }

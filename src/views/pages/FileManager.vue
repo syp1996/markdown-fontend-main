@@ -53,6 +53,7 @@
               placeholder="开始编辑文档..."
               @update:model-value="handleContentChange"
               @title-change="handleTitleChange"
+              @save-start="handleSaveStart"
               @save-success="handleSaveSuccess"
               @save-error="handleSaveError"
             />
@@ -161,6 +162,9 @@ export default {
     // 新增：加载文件内容
     async loadFileContent(file) {
       try {
+        // 清空之前的保存状态
+        this.saveStatus = ''
+        
         // 如果文件有content属性，直接使用
         if (file.content) {
           if (typeof file.content === 'object' && file.content.html) {
@@ -174,11 +178,11 @@ export default {
           // 如果没有content，设置空内容
           this.fileContent = ''
         }
-        this.saveStatus = ''
         console.log('FileManager: 文件内容加载完成', file.title)
       } catch (error) {
         console.error('加载文件内容失败：', error)
         this.fileContent = ''
+        this.saveStatus = ''
         this.$message.error('加载文件内容失败')
       }
     },
@@ -186,7 +190,7 @@ export default {
     // 新增：处理内容变化
     handleContentChange(content) {
       this.fileContent = content
-      this.saveStatus = '正在保存...'
+      // 不再在这里设置保存状态，由TiptapEditor内部控制
     },
 
     // 新增：处理标题变化
@@ -203,6 +207,12 @@ export default {
           newTitle: newTitle
         })
       }
+    },
+
+    // 新增：处理保存开始
+    handleSaveStart(data) {
+      this.saveStatus = '正在保存...'
+      console.log('文件开始保存:', data)
     },
 
     // 新增：处理保存成功

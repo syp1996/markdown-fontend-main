@@ -491,7 +491,7 @@ export default {
       default: ''
     }
   },
-  emits: ['update:modelValue', 'change', 'focus', 'blur', 'save-success', 'save-error', 'title-change'],
+  emits: ['update:modelValue', 'change', 'focus', 'blur', 'save-success', 'save-error', 'title-change', 'save-start'],
   data() {
     return {
       editor: null,
@@ -510,6 +510,8 @@ export default {
       documentTitle: '',
       titleSaveTimer: null,
       titleSyncTimer: null, // 标题同步延迟定时器
+      // 新增：标记是否正在程序化设置内容（非用户编辑）
+      isProgrammaticUpdate: false,
     }
   },
   computed: {
@@ -550,7 +552,15 @@ export default {
   watch: {
     modelValue(newValue) {
       if (this.editor && newValue !== this.getCurrentValue()) {
+        // 标记为程序化更新，避免触发自动保存
+        this.isProgrammaticUpdate = true
         this.setContent(newValue)
+        // 更新最后保存的内容为新加载的内容
+        this.lastSavedContent = newValue || ''
+        // 重置标志位
+        this.$nextTick(() => {
+          this.isProgrammaticUpdate = false
+        })
       }
     },
     content: {
@@ -608,7 +618,15 @@ export default {
       
       // 只有当内容确实不同时才更新
       if (contentValue && contentValue !== currentValue) {
+        // 标记为程序化更新，避免触发自动保存
+        this.isProgrammaticUpdate = true
         this.setContent(contentValue)
+        // 更新最后保存的内容为新加载的内容
+        this.lastSavedContent = contentValue
+        // 重置标志位
+        this.$nextTick(() => {
+          this.isProgrammaticUpdate = false
+        })
       }
     },
 
@@ -992,6 +1010,12 @@ export default {
         return
       }
 
+      // 如果是程序化更新（如切换文件），则不执行自动保存
+      if (this.isProgrammaticUpdate) {
+        console.log('TiptapEditor: 跳过程序化更新的自动保存')
+        return
+      }
+
       // 如果内容没有变化，则不执行保存
       if (content === this.lastSavedContent || this.isSaving) {
         return
@@ -1014,6 +1038,12 @@ export default {
 
       try {
         this.isSaving = true
+        
+        // 触发保存开始事件
+        this.$emit('save-start', {
+          documentId: this.documentId,
+          timestamp: new Date().toISOString()
+        })
         
         // 准备保存数据
         const saveData = {
@@ -1081,6 +1111,12 @@ export default {
       // 如果未启用用户输入监听自动保存，则返回
       if (!this.enableUserInputAutoSave) {
         console.log('TiptapEditor: 用户输入监听自动保存未启用 (enableUserInputAutoSave = false)')
+        return
+      }
+
+      // 如果是程序化更新（如切换文件），则不执行用户输入监听
+      if (this.isProgrammaticUpdate) {
+        console.log('TiptapEditor: 跳过程序化更新的用户输入监听')
         return
       }
 
@@ -1430,14 +1466,14 @@ export default {
 /* Tiptap 编辑器样式 */
 :deep(.tiptap-editor-instance) {
   padding: 12px;
-  height: 100%;
+  height: auto;
   min-height: 100px;
   outline: none;
   font-size: 14px;
   line-height: 1.6;
   word-wrap: break-word;
   white-space: pre-wrap;
-  overflow-y: auto;
+  overflow-y: visible;
   box-sizing: border-box;
 }
 
