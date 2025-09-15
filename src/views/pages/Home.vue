@@ -57,8 +57,6 @@
         <div class="chat-messages" ref="messagesContainer">
           <div v-for="(message, index) in messages" :key="index" class="message-item" :class="message.role">
             <div class="message-avatar">
-              <div v-if="message.role === 'user'" class="user-avatar">👤</div>
-              <div v-else class="ai-avatar">🤖</div>
             </div>
             <div class="message-content">
               <div class="message-text">
@@ -72,7 +70,6 @@
   
           <div v-if="isLoading && !isStreaming" class="message-item assistant">
             <div class="message-avatar">
-              <div class="ai-avatar">🤖</div>
             </div>
             <div class="message-content">
               <div class="typing-indicator">
@@ -666,7 +663,6 @@
   
   .message-avatar { flex-shrink: 0; margin-top: 4px; }
   .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: #409eff; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; }
-  .message-item.assistant .ai-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 16px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
   
   .message-content { flex: 1; min-width: 0; }
   .message-text { background: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); word-wrap: break-word; line-height: 1.6; }
