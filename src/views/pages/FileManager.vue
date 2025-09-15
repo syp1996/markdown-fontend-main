@@ -220,6 +220,15 @@ export default {
       this.saveStatus = '已保存'
       console.log('文件保存成功:', data)
       
+      // 保存成功后，通知LeftSideBar更新文档数据
+      if (this.selectedFile && data.content) {
+        eventBus.emit('file-content-updated', {
+          fileId: this.selectedFile.id,
+          newContent: data.content,
+          timestamp: data.timestamp
+        })
+      }
+      
       // 保存成功状态显示2秒后隐藏
       setTimeout(() => {
         this.saveStatus = ''

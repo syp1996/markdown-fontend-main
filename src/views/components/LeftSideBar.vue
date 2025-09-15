@@ -120,6 +120,8 @@ export default {
         await this.loadDocuments();
         // 监听来自编辑器的标题变化事件
         this.setupTitleChangeListener();
+        // 监听文件内容更新事件
+        this.setupContentUpdateListener();
     },
     mounted() {
         // 添加全局点击监听，点击外部关闭弹窗
@@ -133,6 +135,7 @@ export default {
         // 组件销毁前移除监听器
         document.removeEventListener('click', this.closePopover);
         this.cleanupTitleChangeListener();
+        this.cleanupContentUpdateListener();
         // 清理动画定时器
         if (this.animationTimer) {
             clearTimeout(this.animationTimer);
@@ -426,6 +429,16 @@ export default {
             eventBus.off('title-changed-from-editor', this.handleTitleChangeFromEditor);
         },
 
+        // 新增：设置内容更新监听器
+        setupContentUpdateListener() {
+            eventBus.on('file-content-updated', this.handleFileContentUpdated);
+        },
+
+        // 新增：清理内容更新监听器
+        cleanupContentUpdateListener() {
+            eventBus.off('file-content-updated', this.handleFileContentUpdated);
+        },
+
         // 新增：处理来自编辑器的标题变化
         handleTitleChangeFromEditor(data) {
             if (data && data.fileId && data.newTitle) {
@@ -499,6 +512,29 @@ export default {
 
             // 开始动画
             typeNextChar();
+        },
+
+        // 新增：处理文件内容更新事件
+        handleFileContentUpdated(data) {
+            if (data && data.fileId && data.newContent) {
+                console.log('LeftSideBar: 接收到文件内容更新事件', data);
+                
+                // 找到对应的文档并更新其内容
+                const docIndex = this.documents.findIndex(doc => doc.id === data.fileId);
+                if (docIndex > -1) {
+                    // 更新文档的content字段
+                    this.documents[docIndex].content = data.newContent;
+                    
+                    // 如果当前选中的是这个文档，也更新selectedFile
+                    if (this.selectedFile && this.selectedFile.id === data.fileId) {
+                        this.selectedFile.content = data.newContent;
+                    }
+                    
+                    console.log('LeftSideBar: 文档内容已更新', data.fileId);
+                } else {
+                    console.warn('LeftSideBar: 未找到要更新的文档', data.fileId);
+                }
+            }
         }
     }
 }
