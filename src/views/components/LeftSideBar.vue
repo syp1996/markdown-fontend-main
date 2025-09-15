@@ -712,6 +712,17 @@ export default {
     /* 防止压缩 */
     flex-shrink: 0;
     /* 不允许收缩 */
+    overflow: hidden;
+    /* 隐藏溢出内容 */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE */
+}
+
+/* 隐藏menu-header的webkit滚动条 */
+.menu-header::-webkit-scrollbar {
+    display: none;
 }
 
 .menu-header:hover {
@@ -745,24 +756,15 @@ export default {
 .submenu.expanded {
     max-height: 60vh;
     overflow-y: auto;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE */
 }
 
-/* 自定义子菜单滚动条样式 */
+/* 隐藏子菜单滚动条 */
 .submenu.expanded::-webkit-scrollbar {
-    width: 6px;
-}
-
-.submenu.expanded::-webkit-scrollbar-track {
-    background: #f5f5f5;
-}
-
-.submenu.expanded::-webkit-scrollbar-thumb {
-    background: #c0c4cc;
-    border-radius: 3px;
-}
-
-.submenu.expanded::-webkit-scrollbar-thumb:hover {
-    background: #909399;
+    display: none;
 }
 
 .submenu-item {
