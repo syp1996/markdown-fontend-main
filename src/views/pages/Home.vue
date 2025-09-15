@@ -60,7 +60,18 @@
             </div>
             <div class="message-content">
               <div class="message-text">
-                <span v-if="message.isStreaming" class="streaming-raw" v-text="message.content"></span>
+                <div v-if="message.isStreaming && !message.content" class="thinking">
+                  <div class="thinking-header">
+                    <div class="thinking-spinner" aria-hidden="true"></div>
+                    <div class="thinking-text">正在思考…</div>
+                  </div>
+                  <div class="thinking-skeleton">
+                    <div class="skeleton-line w80"></div>
+                    <div class="skeleton-line w60"></div>
+                    <div class="skeleton-line w70"></div>
+                  </div>
+                </div>
+                <span v-else-if="message.isStreaming" class="streaming-raw" v-text="message.content"></span>
                 <span v-else v-html="formatMessage(message.content)"></span>
               </div>
               <div class="message-time">{{ formatTime(message.timestamp) }}</div>
@@ -797,7 +808,7 @@
   
   .message-time { font-size: 12px; color: #c0c4cc; margin-top: 4px; text-align: right; }
   .message-item.user .message-time { text-align: left; }
-  
+
   /* Markdown Styles */
   /* 标题样式 */
   .message-text :deep(h1) { font-size: 1.5em; font-weight: bold; margin: 16px 0 12px 0; color: #333; }
@@ -913,6 +924,32 @@
   .message-text :deep(.hljs-built_in),
   .message-text :deep(.hljs-builtin-name) { color: #e36209; }
   .message-item.user .message-text :deep(.hljs) { color: #fff; }
+
+  /* Thinking (pre-stream) */
+  .thinking { display: flex; flex-direction: column; gap: 10px; }
+  .thinking-header { display: flex; align-items: center; gap: 8px; }
+  .thinking-text { font-size: 14px; color: #65738a; }
+  .thinking-spinner {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid #c7d2fe; border-top-color: #6366f1;
+    animation: spin-anim 1s linear infinite;
+  }
+  @keyframes spin-anim { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
+  .thinking-skeleton { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+  .skeleton-line {
+    height: 10px; border-radius: 6px;
+    background: linear-gradient(90deg, #eef2f7 25%, #e9eef5 37%, #eef2f7 63%);
+    background-size: 400% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+  .skeleton-line.w80 { width: 80%; }
+  .skeleton-line.w70 { width: 70%; }
+  .skeleton-line.w60 { width: 60%; }
+  @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+  .message-item.user .thinking-text { color: rgba(255,255,255,0.85); }
+  .message-item.user .skeleton-line {
+    background: linear-gradient(90deg, rgba(255,255,255,0.18) 25%, rgba(255,255,255,0.28) 37%, rgba(255,255,255,0.18) 63%);
+  }
 
   /* KaTeX 容器微调，避免被气泡样式挤压 */
   .message-text :deep(.katex-display) { overflow-x: auto; padding: 6px 0; }
