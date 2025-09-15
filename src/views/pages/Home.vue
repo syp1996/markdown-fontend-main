@@ -60,7 +60,8 @@
             </div>
             <div class="message-content">
               <div class="message-text">
-                <span v-html="formatMessage(message.content)"></span>
+                <span v-if="message.isStreaming" class="streaming-raw" v-text="message.content"></span>
+                <span v-else v-html="formatMessage(message.content)"></span>
               </div>
               <div class="message-time">{{ formatTime(message.timestamp) }}</div>
             </div>
@@ -193,8 +194,10 @@
             (chunk) => {
               if (this.currentStreamingMessageIndex >= 0) {
                 this.messages[this.currentStreamingMessageIndex].content += chunk
-                this.scrollToBottom()
-                this.queueEnhance()
+                // 强制触发视图刷新，避免个别环境下嵌套属性变更未立即渲染
+                if (typeof this.$forceUpdate === 'function') this.$forceUpdate()
+                this.$nextTick(() => this.scrollToBottom())
+                // 流式过程中不做重型增强，待完成后统一处理
               }
             }
           )

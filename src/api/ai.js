@@ -93,6 +93,8 @@ export async function askKnowledgeStream(message, options = {}, onChunk) {
   const resp = await fetch(`${API_BASE}/v1/ask/stream`, {
     method: 'POST',
     headers,
+    // 避免缓存/变换，确保流式直通
+    cache: 'no-store',
     // 不设置超时，等待后端生成
     body: JSON.stringify(requestData)
   })
@@ -126,55 +128,61 @@ export async function askKnowledgeStream(message, options = {}, onChunk) {
       continue
     }
 
-    // SSE 模式：累积缓冲，按行处理，保留残余
+    // SSE 模式：按空行分隔事件，支持多行 data: 合并，忽略心跳行“:”
     buffer += text
-    let nlIndex
-    while ((nlIndex = buffer.indexOf('\n')) !== -1) {
-      const rawLine = buffer.slice(0, nlIndex)
-      buffer = buffer.slice(nlIndex + 1)
+    let sepIndex
+    while ((sepIndex = buffer.indexOf('\n\n')) >= 0) {
+      const rawEvent = buffer.slice(0, sepIndex)
+      buffer = buffer.slice(sepIndex + 2)
 
-      const line = rawLine.trimEnd()
-      if (!line) continue // 跳过空行
+      const event = rawEvent.trimEnd()
+      if (!event) continue
+      if (event.startsWith(':')) continue // 心跳
 
-      if (line.startsWith('data:')) {
-        const dataStr = line.replace(/^data:\s?/, '')
-        if (dataStr === '[DONE]') continue
+      // 合并多行 data:
+      const dataLines = event
+        .split('\n')
+        .filter(l => l.startsWith('data:'))
+        .map(l => l.replace(/^data:\s?/, ''))
+      if (dataLines.length === 0) continue
 
-        let piece = ''
-        try {
-          const parsed = JSON.parse(dataStr)
-          // 兼容多种字段命名
-          piece =
-            parsed.content ||
-            parsed.delta ||
-            parsed.text ||
-            parsed.answer ||
-            parsed.message ||
-            ''
-          // 如果是 OpenAI 风格数据结构
-          if (!piece && parsed.choices && parsed.choices[0]) {
-            piece = parsed.choices[0].delta?.content || parsed.choices[0].message?.content || ''
-          }
-        } catch (_) {
-          // 非 JSON，直接作为文本处理
-          piece = dataStr
+      const dataStr = dataLines.join('\n')
+      if (dataStr === '[DONE]') continue
+
+      let piece = ''
+      try {
+        const parsed = JSON.parse(dataStr)
+        piece =
+          parsed.content ||
+          parsed.delta ||
+          parsed.text ||
+          parsed.answer ||
+          parsed.message || ''
+        if (!piece && parsed.choices && parsed.choices[0]) {
+          piece = parsed.choices[0].delta?.content || parsed.choices[0].message?.content || ''
         }
-
-        if (piece) {
-          full += piece
-          onChunk && onChunk(piece)
-        }
+      } catch (_) {
+        // 非 JSON，直接作为文本处理
+        piece = dataStr
       }
-      // 其他如以冒号开头的注释行忽略
+
+      if (piece) {
+        full += piece
+        try { onChunk && onChunk(piece) } catch (e) { /* 忽略 UI 回调异常 */ }
+      }
     }
   }
 
-  // 处理缓冲区残余（SSE 下可能还有最后一行）
+  // 处理残余事件
   if (buffer && isSSE) {
-    const line = buffer.trim()
-    if (line.startsWith('data:')) {
-      const dataStr = line.replace(/^data:\s?/, '')
-      if (dataStr !== '[DONE]') {
+    const event = buffer.trim()
+    if (event && !event.startsWith(':')) {
+      const dataLines = event
+        .split('\n')
+        .filter(l => l.startsWith('data:'))
+        .map(l => l.replace(/^data:\s?/, ''))
+      const dataStr = dataLines.join('\n')
+      if (dataStr && dataStr !== '[DONE]') {
         let piece = ''
         try {
           const parsed = JSON.parse(dataStr)
@@ -187,7 +195,7 @@ export async function askKnowledgeStream(message, options = {}, onChunk) {
         }
         if (piece) {
           full += piece
-          onChunk && onChunk(piece)
+          try { onChunk && onChunk(piece) } catch (_) {}
         }
       }
     }
