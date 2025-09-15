@@ -418,17 +418,23 @@ export default {
 
 .file-editor-container {
   flex: 1;
-  display: flex;
-  flex-direction: column;
   height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* 隐藏滚动条但保持滚动功能 */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
 }
 
 .file-info {
   flex-shrink: 0;
-  padding: 16px 0;
+  padding: 16px 20px;
   border-bottom: 1px solid #ebeef5;
-  margin-bottom: 16px;
+  margin-bottom: 0;
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .file-title {
@@ -518,23 +524,25 @@ export default {
 }
 
 .editor-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
+  padding: 20px;
+  background: white;
 }
 
-/* 确保编辑器能够占满剩余空间 */
+/* 编辑器容器样式调整 */
 .editor-wrapper :deep(.tiptap-editor-container) {
-  height: 100%;
+  min-height: calc(100vh - 200px); /* 确保编辑器有足够的高度 */
   display: flex;
   flex-direction: column;
 }
 
 .editor-wrapper :deep(.editor-content) {
   flex: 1;
-  overflow-y: auto;
+  overflow: visible; /* 让内容自然流动，不需要单独的滚动条 */
+}
+
+/* 隐藏file-editor-container的滚动条 (Webkit浏览器) */
+.file-editor-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* 其他辅助样式 */
@@ -591,6 +599,14 @@ export default {
     padding: 10px;
   }
   
+  .file-editor-container {
+    padding: 0;
+  }
+  
+  .file-info {
+    padding: 12px 16px;
+  }
+  
   .file-title {
     font-size: 20px;
   }
@@ -610,6 +626,14 @@ export default {
   .save-status {
     align-self: flex-end;
     font-size: 12px;
+  }
+  
+  .editor-wrapper {
+    padding: 16px;
+  }
+  
+  .editor-wrapper :deep(.tiptap-editor-container) {
+    min-height: calc(100vh - 150px);
   }
 }
 </style>

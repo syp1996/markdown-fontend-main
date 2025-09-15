@@ -645,11 +645,21 @@
   /* --- Chat View Styles (Original styles adapted) --- */
   .chat-messages {
     flex: 1;
-    overflow-y: visible;
+    overflow-y: auto;
+    overflow-x: hidden;
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    min-height: 0; /* 重要：允许flex子项收缩 */
+    /* 隐藏滚动条但保持滚动功能 */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  /* 隐藏chat-messages的滚动条 (Webkit浏览器) */
+  .chat-messages::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
   }
   
   .message-item { display: flex; gap: 12px; max-width: 80%; animation: fadeInUp 0.3s ease; }
@@ -713,7 +723,12 @@
   @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
   
   /* Chat View Input Area */
-  .chat-input-container { padding: 10px 24px 20px 24px; background: #FBFBFA; border-top: 1px solid #e8eaec; }
+  .chat-input-container { 
+    padding: 10px 24px 20px 24px; 
+    background: #FBFBFA; 
+    border-top: 1px solid #e8eaec; 
+    flex-shrink: 0; /* 防止输入区域被压缩 */
+  }
   .input-wrapper { display: flex; gap: 12px; align-items: flex-end; max-width: 800px; margin: 0 auto; }
   .message-input { flex: 1; min-height: 40px; padding: 10px 16px; border: 1px solid #dcdfe6; border-radius: 20px; outline: none; font-size: 14px; line-height: 1.4; font-family: inherit; transition: border-color 0.3s ease; word-wrap: break-word; white-space: pre-wrap; background: #fff; }
   .message-input:focus { border-color: #409eff; }
@@ -722,9 +737,23 @@
   /* Responsive */
   @media (max-width: 768px) {
     .greeting-title { font-size: 32px; }
-    .chat-page { height: 100vh; }
-    .chat-messages { padding: 16px; }
+    .chat-page { 
+      height: 100vh; 
+      max-height: 100vh; /* 确保不超过视口高度 */
+    }
+    .chat-messages { 
+      padding: 16px; 
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+    }
     .message-item { max-width: 90%; }
-    .chat-input-container { padding: 16px; width: 100%; height: auto; min-height: 80px; }
+    .chat-input-container { 
+      padding: 16px; 
+      width: 100%; 
+      height: auto; 
+      min-height: 80px;
+      flex-shrink: 0; /* 防止输入区域被压缩 */
+    }
   }
   </style>
