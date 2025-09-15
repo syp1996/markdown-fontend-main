@@ -60,8 +60,7 @@
             </div>
             <div class="message-content">
               <div class="message-text">
-                <span v-if="message.isStreaming" class="streaming-raw" v-text="message.content"></span>
-                <span v-else v-html="formatMessage(message.content)"></span>
+                <span v-html="formatMessage(message.content)"></span>
                 <span v-if="message.isStreaming" class="streaming-cursor">|</span>
               </div>
               <div class="message-time">{{ formatTime(message.timestamp) }}</div>
@@ -100,6 +99,8 @@
   
   <script>
   import { askKnowledgeStream } from '@/api/ai'
+  import DOMPurify from 'dompurify'
+  import { FormatConverter } from '@/utils/formatConverter'
   
   export default {
     name: 'HomePage',
@@ -131,10 +132,15 @@
       this.focusInput()
       // 添加点击外部关闭下拉菜单的事件监听
       document.addEventListener('click', this.handleOutsideClick)
+      // 消息区域事件委托（复制代码等）
+      this.$nextTick(() => {
+        this.$el && this.$el.addEventListener('click', this.handleMessageAreaClick)
+      })
     },
     beforeUnmount() {
       // 清理事件监听
       document.removeEventListener('click', this.handleOutsideClick)
+      this.$el && this.$el.removeEventListener('click', this.handleMessageAreaClick)
     },
     methods: {
       // 发送消息
@@ -183,6 +189,7 @@
               if (this.currentStreamingMessageIndex >= 0) {
                 this.messages[this.currentStreamingMessageIndex].content += chunk
                 this.scrollToBottom()
+                this.queueEnhance()
               }
             }
           )
@@ -211,6 +218,7 @@
           this.isStreaming = false
           this.currentStreamingMessageIndex = -1
           this.scrollToBottom()
+          this.queueEnhance()
           this.focusInput()
         }
       },
@@ -311,46 +319,100 @@
           if (container) container.scrollTop = container.scrollHeight
         })
       },
+
+      // 在渲染后的 DOM 中增强 Markdown（代码块复制按钮、语言标签等）
+      enhanceRenderedMarkdown() {
+        const container = this.$refs.messagesContainer
+        if (!container) return
+        const pres = container.querySelectorAll('pre')
+        pres.forEach(pre => {
+          if (pre.getAttribute('data-enhanced') === '1') return
+          pre.setAttribute('data-enhanced', '1')
+          pre.style.position = pre.style.position || 'relative'
+
+          // 语言标签
+          const codeEl = pre.querySelector('code')
+          if (codeEl) {
+            const cls = codeEl.className || ''
+            const m = cls.match(/language-([a-zA-Z0-9_+-]+)/)
+            if (m && !pre.querySelector('.code-lang-tag')) {
+              const tag = document.createElement('span')
+              tag.className = 'code-lang-tag'
+              tag.textContent = m[1].toUpperCase()
+              pre.appendChild(tag)
+            }
+          }
+
+          // 复制按钮
+          if (!pre.querySelector('.copy-code-btn')) {
+            const btn = document.createElement('button')
+            btn.type = 'button'
+            btn.className = 'copy-code-btn'
+            btn.textContent = '复制'
+            pre.appendChild(btn)
+          }
+        })
+      },
+
+      // 轻量节流，减少频繁 DOM 操作
+      queueEnhance() {
+        clearTimeout(this._enhanceTimer)
+        this._enhanceTimer = setTimeout(() => {
+          this.$nextTick(() => this.enhanceRenderedMarkdown())
+        }, 120)
+      },
+
+      // 处理消息区域点击（复制代码）
+      async handleMessageAreaClick(e) {
+        const btn = e.target.closest && e.target.closest('.copy-code-btn')
+        if (!btn) return
+        const pre = btn.closest('pre')
+        const code = pre && pre.querySelector('code')
+        const text = code ? code.innerText : (pre ? pre.innerText : '')
+        if (!text) return
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text)
+          } else {
+            const ta = document.createElement('textarea')
+            ta.value = text
+            ta.style.position = 'fixed'
+            ta.style.left = '-10000px'
+            document.body.appendChild(ta)
+            ta.focus()
+            ta.select()
+            document.execCommand('copy')
+            document.body.removeChild(ta)
+          }
+          const old = btn.textContent
+          btn.textContent = '已复制'
+          setTimeout(() => (btn.textContent = old), 1200)
+        } catch (err) {
+          console.warn('复制失败', err)
+          const old = btn.textContent
+          btn.textContent = '复制失败'
+          setTimeout(() => (btn.textContent = old), 1200)
+        }
+      },
       
+      // 将 Markdown 渲染为安全的 HTML（支持 GFM）
       formatMessage(content) {
         if (!content) return ''
-        
-        let result = content
-        
-        // 处理代码块（优先处理，避免被其他规则干扰）
-        result = result.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-        
-        // 处理行内代码
-        result = result.replace(/`([^`]+)`/g, '<code>$1</code>')
-        
-        // 处理标题
-        result = result.replace(/^### (.*$)/gim, '<h3>$1</h3>')
-        result = result.replace(/^## (.*$)/gim, '<h2>$1</h2>')
-        result = result.replace(/^# (.*$)/gim, '<h1>$1</h1>')
-        
-        // 处理粗体和斜体
-        result = result.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        result = result.replace(/\*(.*?)\*/g, '<em>$1</em>')
-        
-        // 处理无序列表
-        result = result.replace(/^\* (.*$)/gim, '<li>$1</li>')
-        result = result.replace(/^(\d+)\. (.*$)/gim, '<li>$2</li>')
-        
-        // 包装连续的列表项
-        result = result.replace(/(<li>.*<\/li>)/g, function(match) {
-          return '<ul>' + match + '</ul>'
-        })
-        
-        // 合并相邻的ul标签
-        result = result.replace(/<\/ul>\s*<ul>/g, '')
-        
-        // 处理引用
-        result = result.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>')
-        
-        // 处理换行
-        result = result.replace(/\n/g, '<br>')
-        
-        return result
+        try {
+          // 1) Markdown → HTML（GFM、换行等已由 FormatConverter 配置）
+          let html = FormatConverter.markdownToHtml(content)
+
+          // 2) 安全清洗，允许常见 Markdown 标签
+          html = DOMPurify.sanitize(html)
+
+          // 3) 链接统一在新窗口打开，防止跳走当前页
+          html = html.replace(/<a (?![^>]*target=)/g, '<a target="_blank" rel="noopener noreferrer nofollow" ')
+
+          return html
+        } catch (e) {
+          console.warn('渲染消息失败，回退为纯文本:', e)
+          return DOMPurify.sanitize(content).replace(/\n/g, '<br>')
+        }
       },
       
       formatTime(timestamp) {
@@ -683,9 +745,15 @@
   .message-text :deep(h1) { font-size: 1.5em; font-weight: bold; margin: 16px 0 12px 0; color: #333; }
   .message-text :deep(h2) { font-size: 1.3em; font-weight: bold; margin: 14px 0 10px 0; color: #333; }
   .message-text :deep(h3) { font-size: 1.1em; font-weight: bold; margin: 12px 0 8px 0; color: #333; }
+  .message-text :deep(h4) { font-size: 1.0em; font-weight: 600; margin: 10px 0 6px 0; color: #333; }
+  .message-text :deep(h5) { font-size: 0.95em; font-weight: 600; margin: 8px 0 4px 0; color: #333; }
+  .message-text :deep(h6) { font-size: 0.9em; font-weight: 600; margin: 6px 0 4px 0; color: #333; }
   .message-item.user .message-text :deep(h1),
   .message-item.user .message-text :deep(h2),
-  .message-item.user .message-text :deep(h3) { color: white; }
+  .message-item.user .message-text :deep(h3),
+  .message-item.user .message-text :deep(h4),
+  .message-item.user .message-text :deep(h5),
+  .message-item.user .message-text :deep(h6) { color: white; }
   
   /* 列表样式 */
   .message-text :deep(ul) { margin: 8px 0; padding-left: 20px; }
@@ -711,6 +779,63 @@
   .message-item.user .message-text :deep(code) { background: rgba(255, 255, 255, 0.2); }
   .message-text :deep(pre) { background: #f5f7fa; padding: 12px; border-radius: 8px; overflow-x: auto; margin: 8px 0; }
   .message-text :deep(pre code) { background: none; padding: 0; }
+
+  /* 代码块工具条与语言标签 */
+  .message-text :deep(pre) {
+    position: relative;
+    padding-top: 34px; /* 给语言标签/复制按钮留出空间 */
+  }
+  .message-text :deep(.code-lang-tag) {
+    position: absolute;
+    top: 6px;
+    left: 10px;
+    font-size: 12px;
+    color: #666;
+    background: #eef2f7;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 2px 6px;
+  }
+  .message-item.user .message-text :deep(.code-lang-tag) {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border-color: rgba(255,255,255,0.35);
+  }
+  .message-text :deep(.copy-code-btn) {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 12px;
+    line-height: 1;
+    color: #334155;
+    background: #e5e7eb;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+  .message-text :deep(.copy-code-btn:hover) {
+    background: #dbe3ea;
+  }
+  .message-item.user .message-text :deep(pre) { background: rgba(255,255,255,0.08); }
+  .message-item.user .message-text :deep(.copy-code-btn) {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border-color: rgba(255,255,255,0.35);
+  }
+
+  /* 表格与链接、图片等 */
+  .message-text :deep(table) { width: 100%; border-collapse: collapse; margin: 10px 0; }
+  .message-text :deep(th),
+  .message-text :deep(td) { border: 1px solid #e5e7eb; padding: 8px 10px; text-align: left; }
+  .message-text :deep(th) { background: #f9fafb; font-weight: 600; }
+  .message-item.user .message-text :deep(th),
+  .message-item.user .message-text :deep(td) { border-color: rgba(255,255,255,0.35); }
+
+  .message-text :deep(a) { color: #409eff; text-decoration: underline; word-break: break-all; }
+  .message-item.user .message-text :deep(a) { color: #dceeff; }
+
+  .message-text :deep(img) { max-width: 100%; border-radius: 6px; border: 1px solid #eee; }
   
   
   .typing-indicator { display: flex; gap: 4px; padding: 12px 16px; }
