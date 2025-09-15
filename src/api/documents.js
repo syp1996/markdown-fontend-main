@@ -26,19 +26,19 @@ export function getDocumentById(id, config = {}) {
   })
 }
 
-// 创建文档
+// 创建文档（RAG版）
 export function createDocument(data) {
   return request({
-    url: '/documents',
+    url: '/v1/ingest/text',
     method: 'post',
     data
   })
 }
 
-// 更新文档
+// 更新文档（RAG版）
 export function updateDocument(id, data) {
   return request({
-    url: `/documents/${id}`,
+    url: `/v1/ingest/text/${id}`,
     method: 'put',
     data
   })
