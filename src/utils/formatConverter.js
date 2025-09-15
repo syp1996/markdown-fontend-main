@@ -1,4 +1,5 @@
 import { marked } from 'marked';
+import hljs from 'highlight.js';
 
 /**
  * 文件格式转换工具
@@ -17,7 +18,18 @@ export class FormatConverter {
       marked.setOptions({
         breaks: true, // 支持换行
         gfm: true,    // 支持 GitHub 风格 Markdown
-        sanitize: false // 允许 HTML 标签
+        sanitize: false, // 允许 HTML 标签（后续由 DOMPurify 统一清洗）
+        langPrefix: 'language-',
+        highlight(code, lang) {
+          try {
+            if (lang && hljs.getLanguage(lang)) {
+              return hljs.highlight(code, { language: lang }).value
+            }
+            return hljs.highlightAuto(code).value
+          } catch (e) {
+            return code
+          }
+        }
       });
       
       return marked.parse(markdown);

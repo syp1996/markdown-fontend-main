@@ -101,6 +101,12 @@
   import { askKnowledgeStream } from '@/api/ai'
   import DOMPurify from 'dompurify'
   import { FormatConverter } from '@/utils/formatConverter'
+  // 数学公式（KaTeX）
+  import renderMathInElement from 'katex/contrib/auto-render'
+  import 'katex/dist/katex.min.css'
+  // 图表（Chart.js）
+  import { Chart, registerables } from 'chart.js'
+  Chart.register(...registerables)
   
   export default {
     name: 'HomePage',
@@ -352,6 +358,56 @@
             pre.appendChild(btn)
           }
         })
+
+        // 数学公式渲染（支持 $$...$$、$...$、\( ... \)、\[ ... \]）
+        try {
+          renderMathInElement(container, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false },
+              { left: '\\[', right: '\\]', display: true }
+            ],
+            throwOnError: false
+          })
+        } catch (e) {
+          console.warn('数学公式渲染失败:', e)
+        }
+
+        // 图表渲染：```chart\n{ ...Chart.js 配置JSON... }\n```
+        try {
+          const chartCodes = container.querySelectorAll('pre > code.language-chart')
+          chartCodes.forEach(codeEl => {
+            const pre = codeEl.closest('pre')
+            if (!pre) return
+            if (pre.getAttribute('data-chart-enhanced') === '1') return
+            const raw = codeEl.textContent || ''
+            let cfg = null
+            try {
+              cfg = JSON.parse(raw)
+            } catch (e) {
+              console.warn('图表 JSON 解析失败:', e)
+              return
+            }
+            // 创建画布并替换代码块
+            const wrapper = document.createElement('div')
+            wrapper.className = 'chart-block'
+            const canvas = document.createElement('canvas')
+            wrapper.appendChild(canvas)
+            pre.replaceWith(wrapper)
+            pre.setAttribute('data-chart-enhanced', '1')
+            try {
+              // 提供默认项，防止必填字段缺失
+              const safeCfg = Object.assign({ type: 'bar', data: { labels: [], datasets: [] }, options: {} }, cfg)
+              const ctx = canvas.getContext('2d')
+              new Chart(ctx, safeCfg)
+            } catch (e) {
+              console.warn('图表渲染失败:', e)
+            }
+          })
+        } catch (e) {
+          console.warn('图表渲染异常:', e)
+        }
       },
 
       // 轻量节流，减少频繁 DOM 操作
@@ -823,6 +879,45 @@
     color: #fff;
     border-color: rgba(255,255,255,0.35);
   }
+
+  /* highlight.js 基础样式（精简 GitHub 风格） */
+  .message-text :deep(code.hljs) {
+    padding: 0;
+    background: transparent;
+  }
+  .message-text :deep(.hljs) {
+    color: #24292e;
+    background: transparent;
+  }
+  .message-text :deep(.hljs-comment),
+  .message-text :deep(.hljs-quote) { color: #6a737d; }
+  .message-text :deep(.hljs-attr),
+  .message-text :deep(.hljs-attribute),
+  .message-text :deep(.hljs-keyword),
+  .message-text :deep(.hljs-selector-tag) { color: #d73a49; }
+  .message-text :deep(.hljs-name),
+  .message-text :deep(.hljs-type),
+  .message-text :deep(.hljs-selector-id),
+  .message-text :deep(.hljs-selector-class) { color: #6f42c1; }
+  .message-text :deep(.hljs-number),
+  .message-text :deep(.hljs-literal),
+  .message-text :deep(.hljs-variable),
+  .message-text :deep(.hljs-template-variable) { color: #005cc5; }
+  .message-text :deep(.hljs-string),
+  .message-text :deep(.hljs-doctag) { color: #032f62; }
+  .message-text :deep(.hljs-title),
+  .message-text :deep(.hljs-section) { color: #22863a; }
+  .message-text :deep(.hljs-meta) { color: #b31d28; }
+  .message-text :deep(.hljs-built_in),
+  .message-text :deep(.hljs-builtin-name) { color: #e36209; }
+  .message-item.user .message-text :deep(.hljs) { color: #fff; }
+
+  /* KaTeX 容器微调，避免被气泡样式挤压 */
+  .message-text :deep(.katex-display) { overflow-x: auto; padding: 6px 0; }
+  .message-item.user .message-text :deep(.katex) { color: #fff; }
+
+  /* 图表容器 */
+  .message-text :deep(.chart-block) { width: 100%; max-width: 100%; margin: 10px 0; }
 
   /* 表格与链接、图片等 */
   .message-text :deep(table) { width: 100%; border-collapse: collapse; margin: 10px 0; }
