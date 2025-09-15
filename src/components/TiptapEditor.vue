@@ -387,7 +387,7 @@
 </template>
 
 <script>
-import { updateDocument } from '@/api/documents'
+import { updateDocument, uploadImage as uploadImageAPI } from '@/api/documents'
 import Placeholder from '@tiptap/extension-placeholder'
 import StarterKit from '@tiptap/starter-kit'
 import { Editor, EditorContent } from '@tiptap/vue-3'
@@ -610,7 +610,7 @@ export default {
       return content || ''
     },
 
-    setContentFromProp(content) {
+    async setContentFromProp(content) {
       if (!this.editor) return
       
       const contentValue = this.extractContentValue(content)
@@ -623,8 +623,10 @@ export default {
         this.setContent(contentValue)
         // 更新最后保存的内容为新加载的内容
         this.lastSavedContent = contentValue
-        // 重置标志位
-        this.$nextTick(() => {
+        
+        // 检查并处理本地图片
+        this.$nextTick(async () => {
+          await this.processLocalImages()
           this.isProgrammaticUpdate = false
         })
       }
@@ -736,6 +738,16 @@ export default {
               }
             }
             return false
+          },
+          handlePaste: (view, event, slice) => {
+            // 处理粘贴事件
+            this.handlePasteEvent(event)
+            return false // 返回false让编辑器继续处理
+          },
+          handleDrop: (view, event, slice, moved) => {
+            // 处理拖拽事件
+            this.handleDropEvent(event)
+            return false // 返回false让编辑器继续处理
           },
         },
       })
@@ -899,14 +911,79 @@ export default {
       }
     },
 
-    uploadImage(event) {
+    async uploadImage(event) {
       const file = event.target.files[0]
       if (file && this.editor) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          this.editor.chain().focus().setImage({ src: e.target.result }).run()
+        try {
+          // 文件类型验证
+          const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+          if (!allowedTypes.includes(file.type)) {
+            this.$message.error('只支持 JPG、PNG、GIF、WebP 格式的图片')
+            event.target.value = ''
+            return
+          }
+          
+          // 文件大小验证（10MB）
+          const maxSize = 10 * 1024 * 1024 // 10MB
+          if (file.size > maxSize) {
+            this.$message.error('图片大小不能超过 10MB')
+            event.target.value = ''
+            return
+          }
+          
+          console.log('开始上传图片:', file.name, '大小:', (file.size / 1024 / 1024).toFixed(2) + 'MB')
+          
+          // 显示上传进度提示
+          const loadingMessage = this.$message({
+            message: '正在上传图片...',
+            type: 'info',
+            duration: 0,
+            showClose: false
+          })
+
+          // 上传图片到服务器
+          const response = await uploadImageAPI(file, this.documentId)
+          
+          // 关闭加载提示
+          loadingMessage.close()
+          
+          // 获取上传后的图片URL，支持多种响应格式
+          let imageUrl = null
+          
+          if (response.data && response.data.url) {
+            imageUrl = response.data.url
+          } else if (response.url) {
+            imageUrl = response.url
+          } else if (response.data && response.data.data && response.data.data.url) {
+            imageUrl = response.data.data.url
+          } else if (response.image_url) {
+            imageUrl = response.image_url
+          }
+          
+          console.log('图片上传响应:', response)
+          console.log('解析到的图片URL:', imageUrl)
+          
+          if (imageUrl) {
+            // 插入图片到编辑器
+            this.editor.chain().focus().setImage({ src: imageUrl }).run()
+            this.$message.success('图片上传成功')
+          } else {
+            console.error('无法从响应中获取图片URL:', response)
+            throw new Error('服务器返回的图片URL无效')
+          }
+        } catch (error) {
+          console.error('图片上传失败:', error)
+          this.$message.error('图片上传失败: ' + (error.message || '未知错误'))
+          
+          // 降级处理：如果服务器上传失败，仍然使用base64
+          const reader = new FileReader()
+          reader.onload = (e) => {
+            this.editor.chain().focus().setImage({ src: e.target.result }).run()
+            this.$message.warning('已使用本地图片（刷新后可能无法显示）')
+          }
+          reader.readAsDataURL(file)
         }
-        reader.readAsDataURL(file)
+        
         // 清空input，允许重复选择同一文件
         event.target.value = ''
       }
@@ -1242,6 +1319,174 @@ export default {
         
       } catch (error) {
         console.error('标题保存失败:', error)
+      }
+    },
+
+    // 处理粘贴事件
+    async handlePasteEvent(event) {
+      // 检查剪贴板中是否有图片文件
+      const items = event.clipboardData?.items
+      if (!items) return
+
+      console.log('检测到粘贴事件，剪贴板项目:', items.length)
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        console.log('剪贴板项目类型:', item.type, item.kind)
+
+        // 处理图片文件
+        if (item.type.indexOf('image') === 0) {
+          const file = item.getAsFile()
+          if (file) {
+            console.log('检测到粘贴的图片文件:', file.name, file.type, file.size)
+            await this.uploadPastedImage(file)
+            return
+          }
+        }
+      }
+
+      // 延迟检查粘贴后的内容，查找本地图片路径
+      setTimeout(() => {
+        this.processLocalImages()
+      }, 100)
+    },
+
+    // 上传粘贴的图片
+    async uploadPastedImage(file) {
+      try {
+        // 文件类型验证
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+        if (!allowedTypes.includes(file.type)) {
+          this.$message.error('粘贴的图片格式不支持，只支持 JPG、PNG、GIF、WebP 格式')
+          return
+        }
+        
+        // 文件大小验证（10MB）
+        const maxSize = 10 * 1024 * 1024 // 10MB
+        if (file.size > maxSize) {
+          this.$message.error('粘贴的图片大小不能超过 10MB')
+          return
+        }
+        
+        console.log('开始上传粘贴的图片:', file.type, '大小:', (file.size / 1024 / 1024).toFixed(2) + 'MB')
+        
+        // 显示上传进度提示
+        const loadingMessage = this.$message({
+          message: '正在上传粘贴的图片...',
+          type: 'info',
+          duration: 0,
+          showClose: false
+        })
+
+        // 上传图片到服务器
+        const response = await uploadImageAPI(file, this.documentId)
+        
+        // 关闭加载提示
+        loadingMessage.close()
+        
+        // 获取上传后的图片URL，支持多种响应格式
+        let imageUrl = null
+        
+        if (response.data && response.data.url) {
+          imageUrl = response.data.url
+        } else if (response.url) {
+          imageUrl = response.url
+        } else if (response.data && response.data.data && response.data.data.url) {
+          imageUrl = response.data.data.url
+        } else if (response.image_url) {
+          imageUrl = response.image_url
+        }
+        
+        console.log('粘贴图片上传响应:', response)
+        console.log('解析到的图片URL:', imageUrl)
+        
+        if (imageUrl) {
+          // 插入图片到编辑器当前位置
+          this.editor.chain().focus().setImage({ src: imageUrl }).run()
+          this.$message.success('粘贴图片上传成功')
+        } else {
+          console.error('无法从响应中获取图片URL:', response)
+          throw new Error('服务器返回的图片URL无效')
+        }
+      } catch (error) {
+        console.error('粘贴图片上传失败:', error)
+        this.$message.error('粘贴图片上传失败: ' + (error.message || '未知错误'))
+        
+        // 降级处理：使用base64
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          this.editor.chain().focus().setImage({ src: e.target.result }).run()
+          this.$message.warning('已使用临时图片（刷新后可能无法显示）')
+        }
+        reader.readAsDataURL(file)
+      }
+    },
+
+    // 处理拖拽事件
+    async handleDropEvent(event) {
+      const files = event.dataTransfer?.files
+      if (!files || files.length === 0) return
+
+      console.log('检测到拖拽文件:', files.length, '个')
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+        console.log('拖拽文件类型:', file.type, file.name)
+
+        // 只处理图片文件
+        if (file.type.indexOf('image') === 0) {
+          console.log('检测到拖拽的图片文件:', file.name, file.type, file.size)
+          await this.uploadPastedImage(file) // 复用粘贴图片的上传逻辑
+        }
+      }
+    },
+
+    // 检测并替换本地图片路径
+    async processLocalImages() {
+      if (!this.editor || !this.documentId) {
+        return
+      }
+
+      const content = this.editor.getHTML()
+      const localImageRegex = /src="file:\/\/[^"]*"/g
+      const matches = content.match(localImageRegex)
+
+      if (!matches || matches.length === 0) {
+        return
+      }
+
+      console.log('发现本地图片路径:', matches.length, '个')
+      this.$message.info(`发现 ${matches.length} 个本地图片，正在上传到服务器...`)
+
+      let updatedContent = content
+      let processedCount = 0
+
+      for (const match of matches) {
+        try {
+          const localPath = match.replace('src="', '').replace('"', '')
+          console.log('处理本地图片路径:', localPath)
+
+          // 这里我们无法直接访问本地文件，只能显示占位符
+          // 用户需要手动重新上传这些图片
+          const placeholderUrl = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIiBzdHJva2U9IiNjY2MiIHN0cm9rZS13aWR0aD0iMiIvPgogIDx0ZXh0IHg9IjUwJSIgeT0iNTAlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjNjY2Ij7pgJrliKTph43mlrDkuIrkvKDlm77niYc8L3RleHQ+Cjwvc3ZnPg=='
+          
+          updatedContent = updatedContent.replace(match, `src="${placeholderUrl}" data-original-path="${localPath}" title="请重新上传此图片"`)
+          processedCount++
+        } catch (error) {
+          console.error('处理本地图片失败:', error)
+          processedCount++
+        }
+      }
+
+      // 更新编辑器内容
+      if (updatedContent !== content) {
+        this.isProgrammaticUpdate = true
+        this.editor.commands.setContent(updatedContent)
+        this.$nextTick(() => {
+          this.isProgrammaticUpdate = false
+        })
+
+        this.$message.warning(`已将 ${processedCount} 个本地图片替换为占位符，请手动重新上传这些图片`)
       }
     }
   }

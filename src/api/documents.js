@@ -80,3 +80,25 @@ export function searchDocuments(keyword, options = {}) {
     params
   })
 }
+
+// 上传图片
+export function uploadImage(file, documentId) {
+  const formData = new FormData()
+  formData.append('image', file)
+  if (documentId) {
+    formData.append('documentId', documentId)
+  }
+
+  // 直接调用后端的图片上传接口，不通过 /api 前缀
+  const baseURL = process.env.NODE_ENV === 'development' ? 'http://localhost:8000' : process.env.VUE_APP_BASE_API
+  
+  return request({
+    url: '/images/upload',
+    method: 'post',
+    data: formData,
+    baseURL: baseURL, // 覆盖默认的 baseURL
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
