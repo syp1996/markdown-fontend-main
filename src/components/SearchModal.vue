@@ -184,10 +184,15 @@ export default {
 
       try {
         this.loading = true
-        const response = await searchDocuments(this.searchKeyword.trim())
+        const response = await searchDocuments(this.searchKeyword.trim(), {
+          page: 1,
+          per_page: 10,
+          search_mode: 'basic',
+          highlight: true
+        })
         
-        // 处理搜索结果
-        this.searchResults = response?.results || response?.items || []
+        // 处理搜索结果 - 新API返回格式
+        this.searchResults = response?.documents || response?.data?.documents || []
         this.selectedIndex = this.searchResults.length > 0 ? 0 : -1
         
       } catch (error) {

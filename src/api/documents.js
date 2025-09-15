@@ -65,12 +65,18 @@ export function uploadDocument(data) {
 }
 
 // 搜索文档
-export function searchDocuments(keyword) {
+export function searchDocuments(keyword, options = {}) {
+  const params = {
+    keyword: keyword,
+    page: options.page || 1,
+    per_page: options.per_page || 10,
+    search_mode: options.search_mode || 'basic',
+    highlight: options.highlight !== false ? 'true' : 'false'
+  }
+
   return request({
     url: '/documents/search',
     method: 'get',
-    params: {
-      keyword
-    }
+    params
   })
 }
