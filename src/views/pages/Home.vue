@@ -56,6 +56,23 @@
                 <span v-else-if="message.isStreaming" class="streaming-raw" v-text="message.content"></span>
                 <span v-else v-html="formatMessage(message.content)"></span>
               </div>
+              <div
+                v-if="message.role === 'assistant' && !message.isStreaming && message.content"
+                class="message-actions"
+              >
+                <button
+                  type="button"
+                  class="message-copy-btn"
+                  :data-message-index="index"
+                  aria-label="复制内容"
+                >
+                  <svg class="message-copy-icon" viewBox="0 0 24 24" role="img" aria-hidden="true">
+                    <rect x="9" y="9" width="11" height="11" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.6"></rect>
+                    <path d="M5.5 15.5H5a2.5 2.5 0 0 1-2.5-2.5V5a2.5 2.5 0 0 1 2.5-2.5h8a2.5 2.5 0 0 1 2.5 2.5v.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+                  </svg>
+                  <span class="sr-only">复制内容</span>
+                </button>
+              </div>
               <div class="message-time">{{ formatTime(message.timestamp) }}</div>
             </div>
           </div>
@@ -413,6 +430,16 @@
 
       // 处理消息区域点击（复制代码）
       async handleMessageAreaClick(e) {
+        const messageCopyBtn = e.target.closest && e.target.closest('.message-copy-btn')
+        if (messageCopyBtn) {
+          const indexAttr = messageCopyBtn.getAttribute('data-message-index')
+          const index = indexAttr ? parseInt(indexAttr, 10) : -1
+          if (!Number.isNaN(index) && index >= 0) {
+            await this.copyMessageContent(index, messageCopyBtn)
+          }
+          return
+        }
+
         const btn = e.target.closest && e.target.closest('.copy-code-btn')
         if (!btn) return
         const pre = btn.closest('pre')
@@ -443,6 +470,42 @@
           setTimeout(() => (btn.textContent = old), 1200)
         }
       },
+
+      async copyMessageContent(index, btn) {
+        const message = this.messages[index]
+        if (!message || !message.content) return
+        const text = message.content
+        btn.removeAttribute('data-feedback')
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text)
+          } else {
+            const ta = document.createElement('textarea')
+            ta.value = text
+            ta.style.position = 'fixed'
+            ta.style.left = '-10000px'
+            document.body.appendChild(ta)
+            ta.focus()
+            ta.select()
+            document.execCommand('copy')
+            document.body.removeChild(ta)
+          }
+          btn.setAttribute('data-feedback', '已复制')
+          btn.setAttribute('data-feedback-tone', 'success')
+          setTimeout(() => {
+            btn.removeAttribute('data-feedback')
+            btn.removeAttribute('data-feedback-tone')
+          }, 1200)
+        } catch (err) {
+          console.warn('复制失败', err)
+          btn.setAttribute('data-feedback', '复制失败')
+          btn.setAttribute('data-feedback-tone', 'error')
+          setTimeout(() => {
+            btn.removeAttribute('data-feedback')
+            btn.removeAttribute('data-feedback-tone')
+          }, 1200)
+        }
+      },
       
       // 将 Markdown 渲染为安全的 HTML（支持 GFM）
       formatMessage(content) {
@@ -456,6 +519,13 @@
 
           // 3) 链接统一在新窗口打开，防止跳走当前页
           html = html.replace(/<a (?![^>]*target=)/g, '<a target="_blank" rel="noopener noreferrer nofollow" ')
+
+          // 4) 知识库引用标记美化
+          const citationPattern = /（引用：\[doc_id=([^,\]]+),\s*chunk_index=([^\]]+)\]）/g
+          const altCitationPattern = /\(引用：\[doc_id=([^,\]]+),\s*chunk_index=([^\]]+)\]\)/g
+          html = html
+            .replace(citationPattern, (_, docId, chunkIndex) => this.buildCitationTag(docId, chunkIndex))
+            .replace(altCitationPattern, (_, docId, chunkIndex) => this.buildCitationTag(docId, chunkIndex))
 
           return html
         } catch (e) {
@@ -472,6 +542,18 @@
         if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前'
         if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前'
         return timestamp.toLocaleDateString() + ' ' + timestamp.toLocaleTimeString().slice(0, 5)
+      },
+
+      buildCitationTag(docId, chunkIndex) {
+        const normalizedDocId = (docId || '').trim()
+        const normalizedChunk = (chunkIndex || '').trim()
+        const label = normalizedDocId ? `#${normalizedDocId}` : '文档'
+        const chunkLabel = normalizedChunk ? `片段${normalizedChunk}` : ''
+        const metaText = chunkLabel ? `${label} · ${chunkLabel}` : label
+        const safeDocId = DOMPurify.sanitize(normalizedDocId)
+        const safeChunk = DOMPurify.sanitize(normalizedChunk)
+        const safeMeta = DOMPurify.sanitize(metaText)
+        return `<span class="kb-citation" data-doc-id="${safeDocId}" data-chunk-index="${safeChunk}"><span class="kb-citation-chip">引用</span><span class="kb-citation-meta">${safeMeta}</span></span>`
       }
     }
   }
@@ -670,7 +752,74 @@
   .message-text { background: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); word-wrap: break-word; line-height: 1.6; }
   .message-item.user .message-text { background: #409eff; color: white; }
   .message-text .streaming-raw { white-space: pre-wrap; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif; }
-  
+  .message-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
+  .message-item.user .message-actions { justify-content: flex-start; }
+  .message-copy-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    color: #364152;
+    background: #f7f9fc;
+    border: 1px solid #d5deeb;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  }
+  .message-copy-btn:hover {
+    background: #eef3fb;
+    border-color: #c1cde3;
+    color: #27364b;
+  }
+  .message-copy-btn:active {
+    background: #e1e9f6;
+    border-color: #adbbd6;
+  }
+  .message-copy-btn::after {
+    content: attr(data-feedback);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translate(-50%, 4px);
+    padding: 4px 9px;
+    border-radius: 6px;
+    background: rgba(59, 130, 246, 0.95);
+    color: #fff;
+    font-size: 12px;
+    line-height: 1;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    white-space: nowrap;
+  }
+  .message-copy-btn[data-feedback]::after {
+    opacity: 1;
+    transform: translate(-50%, -2px);
+  }
+  .message-copy-btn[data-feedback-tone="success"]::after {
+    background: rgba(16, 185, 129, 0.95);
+  }
+  .message-copy-btn[data-feedback-tone="error"]::after {
+    background: rgba(239, 68, 68, 0.96);
+  }
+  .message-copy-icon {
+    width: 12px;
+    height: 12px;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .message-time { font-size: 12px; color: #c0c4cc; margin-top: 4px; text-align: right; }
   .message-item.user .message-time { text-align: left; }
 
@@ -707,7 +856,51 @@
     background: rgba(255, 255, 255, 0.1); 
     color: rgba(255, 255, 255, 0.9); 
   }
-  
+
+  /* 知识库引用标签 */
+  .message-text :deep(.kb-citation) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 6px;
+    padding: 2px 10px 2px 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    background: #eef2ff;
+    border: 1px solid #c7d2fe;
+    border-radius: 999px;
+    color: #4338ca;
+    vertical-align: baseline;
+  }
+  .message-text :deep(.kb-citation-chip) {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: rgba(79, 70, 229, 0.16);
+    color: #4f46e5;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .message-text :deep(.kb-citation-meta) {
+    font-size: 12px;
+    color: #3730a3;
+    white-space: nowrap;
+  }
+  .message-item.user .message-text :deep(.kb-citation) {
+    background: rgba(255, 255, 255, 0.24);
+    border-color: rgba(255, 255, 255, 0.45);
+    color: #ffffff;
+  }
+  .message-item.user .message-text :deep(.kb-citation-chip) {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.28);
+  }
+  .message-item.user .message-text :deep(.kb-citation-meta) {
+    color: #ffffff;
+  }
+
   /* Code Block Styles */
   .message-text :deep(code) { background: #f5f7fa; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Monaco', monospace; font-size: 14px; }
   .message-item.user .message-text :deep(code) { background: rgba(255, 255, 255, 0.2); }

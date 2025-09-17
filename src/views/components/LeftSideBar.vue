@@ -113,7 +113,8 @@ export default {
             isAnimatingTitle: false, // 是否正在播放标题动画
             animatingItemId: null, // 正在动画的项目ID
             displayTitles: {}, // 存储每个项目的显示标题
-            animationTimer: null // 动画定时器
+            animationTimer: null, // 动画定时器
+            creatingDocument: false // 控制新建文档按钮防重入
         }
     },
     async created() {
@@ -331,46 +332,42 @@ export default {
 
         // 新增：创建新文档
         async handleCreateDocument() {
+            if (this.creatingDocument) return;
+            this.creatingDocument = true;
             try {
-                // 调用创建文档API，只传入必填参数title
                 const response = await createDocument({
                     title: '新建文档'
                 });
 
-                // 处理API响应，获取新创建的文档数据
-                let newDoc = response;
-                if (response && response.data) {
-                    newDoc = response.data;
+                const normalizedDoc = this.normalizeCreatedDocument(response);
+                const createdId = this.extractDocumentId(normalizedDoc) || this.extractDocumentId(response);
+
+                await this.refreshDocuments();
+
+                // 确保文件管理菜单展开
+                if (!this.openSubmenus.includes('files')) {
+                    this.openSubmenus.push('files');
                 }
 
-                // 确保新文档有必要的属性
-                if (newDoc && newDoc.id) {
-                    // 将新文档添加到本地文档列表开头
-                    this.documents.unshift(newDoc);
+                const targetDoc = this.locateCreatedDocument({ normalizedDoc, createdId });
 
-                    console.log('文档创建成功:', newDoc);
-
-                    // 确保文件管理菜单是展开状态，以便用户看到新文档
-                    if (!this.openSubmenus.includes('files')) {
-                        this.openSubmenus.push('files');
-                    }
-
-                    // 等待DOM更新后选中新建的文档
+                if (targetDoc) {
                     this.$nextTick(() => {
-                        this.handleMenuSelect('file-list', newDoc);
+                        this.handleMenuSelect('file-list', targetDoc);
                     });
-
-                    // 通知其他组件新文档已创建
-                    eventBus.emit('document-created', { newDoc });
+                    eventBus.emit('document-created', { newDoc: targetDoc });
+                } else if (normalizedDoc) {
+                    eventBus.emit('document-created', { newDoc: normalizedDoc });
                 } else {
-                    throw new Error('创建文档返回数据格式异常');
+                    eventBus.emit('document-created', { newDoc: null });
                 }
+
+                this.$message.success('文档创建成功');
 
             } catch (error) {
                 console.error('创建文档失败:', error);
 
-                // 根据错误类型提供更友好的提示
-                let errorMessage = '创建文档失败，请重试。';
+                let errorMessage = error?.message || '创建文档失败，请重试。';
                 if (error.response && error.response.status === 401) {
                     errorMessage = '用户未登录，请先登录。';
                 } else if (error.response && error.response.status === 403) {
@@ -379,8 +376,59 @@ export default {
                     errorMessage = '服务器错误，请稍后重试。';
                 }
 
-                alert(errorMessage);
+                this.$message.error(errorMessage);
+            } finally {
+                this.creatingDocument = false;
             }
+        },
+
+        normalizeCreatedDocument(response) {
+            if (!response) return null;
+            if (response.document) return response.document;
+            if (response.data) {
+                if (response.data.document) return response.data.document;
+                if (response.data.doc) return response.data.doc;
+                if (response.data.item) return response.data.item;
+                if (response.data.id) return response.data;
+            }
+            if (response.result && response.result.document) return response.result.document;
+            if (response.id || response.uuid) return response;
+            return null;
+        },
+
+        extractDocumentId(source) {
+            if (!source) return null;
+            const candidates = [
+                source.id,
+                source.document_id,
+                source.documentId,
+                source.uuid,
+                source?.data?.id,
+                source?.data?.document_id,
+                source?.data?.documentId,
+                source?.result?.id
+            ];
+            return candidates.map(candidate => candidate !== undefined && candidate !== null ? String(candidate) : null)
+                .find(val => val && val.trim() !== '');
+        },
+
+        locateCreatedDocument({ normalizedDoc, createdId }) {
+            if (!Array.isArray(this.documents) || this.documents.length === 0) return null;
+
+            if (createdId) {
+                const idMatch = this.documents.find(doc => String(doc.id) === String(createdId));
+                if (idMatch) return idMatch;
+            }
+
+            if (normalizedDoc) {
+                const normalizedTitle = (normalizedDoc.title || '').trim();
+                if (normalizedTitle) {
+                    const titleMatch = this.documents.find(doc => (doc.title || '').trim() === normalizedTitle);
+                    if (titleMatch) return titleMatch;
+                }
+            }
+
+            return this.documents[0];
         },
 
         // 新增：处理删除

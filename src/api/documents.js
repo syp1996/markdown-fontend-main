@@ -11,7 +11,7 @@ import request from '@/utils/request'
 // 获取文档列表
 export function getDocuments(params) {
   return request({
-    url: '/documents',
+    url: '/documents/',
     method: 'get',
     params
   })
