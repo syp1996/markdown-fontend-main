@@ -6,50 +6,32 @@
         </h1>
   
         <div class="main-input-card">
-          <div
-            ref="messageInput"
-            class="message-input welcome-input"
-            contenteditable="true"
-            @input="handleInput"
-            @keydown="handleKeydown"
-            @paste="handlePaste"
-            @focus="handleFocus"
-            @blur="handleBlur"
-            :data-placeholder="currentMessage ? '' : 'How can I help you today?'"
-          ></div>
-          <div class="card-footer">
-            <div class="footer-left">
-              <button class="icon-btn">+</button>
-              <button class="icon-btn">⫯</button>
-            </div>
-            <div class="footer-right">
-              <div class="model-selector-dropdown" @click="toggleModelDropdown">
-                <button class="model-selector">
-                  {{ selectedModel.name }} <span class="arrow" :class="{ 'expanded': showModelDropdown }">↓</span>
-                </button>
-                <div v-if="showModelDropdown" class="model-dropdown" @click.stop>
-                  <div 
-                    v-for="model in availableModels" 
-                    :key="model.id" 
-                    class="model-option"
-                    :class="{ 'selected': model.id === selectedModel.id }"
-                    @click="selectModel(model)"
-                  >
-                    <div class="model-info">
-                      <div class="model-name">{{ model.name }}</div>
-                      <div class="model-description">{{ model.description }}</div>
-                    </div>
-                    <div v-if="model.id === selectedModel.id" class="model-check">✓</div>
-                  </div>
-                </div>
-              </div>
-              <button class="send-btn-welcome" @click="sendMessage" :disabled="!currentMessage.trim() || isLoading">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M21.0001 12L3.00006 12M21.0001 12L15.0001 6M21.0001 12L15.0001 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </button>
-            </div>
+          <div class="chat-input-bar">
+            <button type="button" class="pill-icon-btn add-btn" aria-label="Add attachment">
+              <span>+</span>
+            </button>
+            <div
+              ref="messageInput"
+              class="message-input"
+              contenteditable="true"
+              @input="handleInput"
+              @keydown="handleKeydown"
+              @paste="handlePaste"
+              @focus="handleFocus"
+              @blur="handleBlur"
+              :data-placeholder="currentMessage ? '' : 'Ask anything'"
+            ></div>
+            <button
+              type="button"
+              class="pill-icon-btn send-btn"
+              :disabled="!currentMessage.trim() || isLoading"
+              @click="sendMessage"
+              aria-label="Send"
+            >
+              <span class="send-square"></span>
+            </button>
           </div>
+          <p class="input-caption">ChatGPT can make mistakes. Check important info.</p>
         </div>
       </div>
   
@@ -91,18 +73,33 @@
   
         <div class="chat-input-container">
           <div class="input-wrapper">
-            <div
-              ref="messageInput"
-              class="message-input"
-              contenteditable="true"
-              @input="handleInput"
-              @keydown="handleKeydown"
-              @paste="handlePaste"
-              @focus="handleFocus"
-              @blur="handleBlur"
-              :data-placeholder="currentMessage ? '' : '输入您的问题，按Enter发送...'"
-            ></div>
+            <div class="chat-input-bar">
+              <button type="button" class="pill-icon-btn add-btn" aria-label="Add attachment">
+                <span>+</span>
+              </button>
+              <div
+                ref="messageInput"
+                class="message-input"
+                contenteditable="true"
+                @input="handleInput"
+                @keydown="handleKeydown"
+                @paste="handlePaste"
+                @focus="handleFocus"
+                @blur="handleBlur"
+                :data-placeholder="currentMessage ? '' : 'Ask anything'"
+              ></div>
+              <button
+                type="button"
+                class="pill-icon-btn send-btn"
+                :disabled="!currentMessage.trim() || isLoading"
+                @click="sendMessage"
+                aria-label="Send"
+              >
+                <span class="send-square"></span>
+              </button>
+            </div>
           </div>
+          <p class="input-caption">ChatGPT can make mistakes. Check important info.</p>
         </div>
       </template>
     </div>
@@ -130,7 +127,6 @@
         maxHeight: 100,
         isStreaming: false,
         currentStreamingMessageIndex: -1,
-        showModelDropdown: false,
         selectedModel: {
           id: 'deepseek',
           name: 'DeepSeek',
@@ -147,8 +143,6 @@
     },
     mounted() {
       this.focusInput()
-      // 添加点击外部关闭下拉菜单的事件监听
-      document.addEventListener('click', this.handleOutsideClick)
       // 消息区域事件委托（复制代码等）
       this.$nextTick(() => {
         this.$el && this.$el.addEventListener('click', this.handleMessageAreaClick)
@@ -156,7 +150,6 @@
     },
     beforeUnmount() {
       // 清理事件监听
-      document.removeEventListener('click', this.handleOutsideClick)
       this.$el && this.$el.removeEventListener('click', this.handleMessageAreaClick)
     },
     methods: {
@@ -240,19 +233,6 @@
           this.queueEnhance()
           this.focusInput()
         }
-      },
-      
-      // 发送建议消息
-      sendSuggestion(text) {
-        this.currentMessage = text
-        this.$nextTick(() => {
-          const input = this.$refs.messageInput
-          if (input) {
-            input.innerText = text
-            this.adjustInputHeight()
-          }
-        })
-        this.sendMessage()
       },
       
       // 清空消息
@@ -492,24 +472,6 @@
         if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前'
         if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前'
         return timestamp.toLocaleDateString() + ' ' + timestamp.toLocaleTimeString().slice(0, 5)
-      },
-
-      // 模型下拉菜单相关方法
-      toggleModelDropdown() {
-        this.showModelDropdown = !this.showModelDropdown
-      },
-
-      selectModel(model) {
-        this.selectedModel = model
-        this.showModelDropdown = false
-        console.log('切换模型:', model.name)
-      },
-
-      handleOutsideClick(event) {
-        const dropdown = event.target.closest('.model-selector-dropdown')
-        if (!dropdown) {
-          this.showModelDropdown = false
-        }
       }
     }
   }
@@ -566,188 +528,91 @@
     margin-right: 8px;
   }
   
-  .main-input-card {
-    width: 100%;
-    background: white;
-    border-radius: 16px;
-    border: 1px solid #EAEAEA;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-    padding: 16px 20px;
-    box-sizing: border-box;
-  }
-  
-  .welcome-input {
-    min-height: 50px;
-    max-height: 200px;
-    width: 100%;
-    border: none;
-    outline: none;
-    font-size: 16px;
-    line-height: 1.5;
-    text-align: left;
-    overflow-y: auto;
-    word-wrap: break-word;
-    white-space: pre-wrap;
-    box-sizing: border-box;
-  }
-  
-  .welcome-input:empty:before {
-    content: attr(data-placeholder);
-    color: #999;
-    pointer-events: none;
-  }
-  
-  .card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 12px;
-  }
-  
-  .footer-left, .footer-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  
-  .icon-btn, .model-selector {
-    background: transparent;
-    border: 1px solid #E0E0E0;
-    border-radius: 8px;
-    padding: 6px 10px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #555;
-  }
-  
-  .icon-btn {
-    width: 32px;
-    height: 32px;
-    font-size: 18px;
-    line-height: 1;
-  }
-  
-  .model-selector .arrow {
-    display: inline-block;
-    margin-left: 6px;
-    transition: transform 0.2s ease;
-  }
+.main-input-card {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
 
-  .model-selector .arrow.expanded {
-    transform: rotate(180deg);
-  }
+.chat-input-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 18px;
+  border: 1px solid #dfe1e5;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
+}
 
-  /* 模型下拉菜单样式 */
-  .model-selector-dropdown {
-    position: relative;
-    display: inline-block;
-  }
+.pill-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #dfe1e5;
+  background: #fff;
+  color: #111827;
+  font-size: 22px;
+  font-weight: 300;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
 
-  .model-dropdown {
-    position: absolute;
-    bottom: 100%;
-    right: 0;
-    background: white;
-    border: 1px solid #e1e5e9;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    min-width: 280px;
-    max-height: 300px;
-    overflow-y: auto;
-    z-index: 1000;
-    margin-bottom: 8px;
-    padding: 8px 0;
-  }
+.pill-icon-btn:hover {
+  transform: translateY(-1px);
+  border-color: #d1d5db;
+}
 
-  .model-option {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    border-bottom: 1px solid #f0f0f0;
-  }
+.pill-icon-btn:active {
+  transform: translateY(0);
+}
 
-  .model-option:last-child {
-    border-bottom: none;
-  }
+.pill-icon-btn.send-btn {
+  border: none;
+  background: #f1f3f4;
+}
 
-  .model-option:hover {
-    background-color: #f7f7f8;
-  }
+.pill-icon-btn.send-btn:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
 
-  .model-option.selected {
-    background-color: #f0f9ff;
-    border-left: 3px solid #0ea5e9;
-  }
+.pill-icon-btn.send-btn:disabled .send-square {
+  background: #cbd5e1;
+}
 
-  .model-info {
-    flex: 1;
-  }
+.send-square {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: #111827;
+  display: block;
+}
 
-  .model-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1f2937;
-    margin-bottom: 2px;
-  }
+.pill-icon-btn.send-btn:not(:disabled):hover .send-square {
+  background: #000;
+}
 
-  .model-description {
-    font-size: 12px;
-    color: #6b7280;
-    line-height: 1.4;
-  }
-
-  .model-check {
-    color: #0ea5e9;
-    font-size: 16px;
-    font-weight: bold;
-  }
-
-  /* 下拉菜单滚动条样式 */
-  .model-dropdown::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .model-dropdown::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
-  }
-
-  .model-dropdown::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
-  }
-
-  .model-dropdown::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-  }
-  
-  .send-btn-welcome {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    border: none;
-    background: #F28C82;
-    color: white;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
-  }
-  
-  .send-btn-welcome:hover {
-    background: #E87A70;
-  }
-  .send-btn-welcome:disabled {
-    background: #D1D1D1;
-    cursor: not-allowed;
-  }
-  .send-btn-welcome svg {
-    transform: rotate(180deg);
-  }
+.input-caption {
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+  margin: 8px 0 0;
+}
   
   .upgrade-prompt {
     margin-top: 16px;
@@ -978,17 +843,53 @@
   .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
   @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-10px); opacity: 1; } }
   
-  /* Chat View Input Area */
-  .chat-input-container { 
-    padding: 10px 24px 20px 24px; 
-    background: #FBFBFA; 
-    border-top: 1px solid #e8eaec; 
-    flex-shrink: 0; /* 防止输入区域被压缩 */
-  }
-  .input-wrapper { display: flex; gap: 12px; align-items: flex-end; max-width: 800px; margin: 0 auto; }
-  .message-input { flex: 1; min-height: 40px; padding: 10px 16px; border: 1px solid #dcdfe6; border-radius: 20px; outline: none; font-size: 14px; line-height: 1.4; font-family: inherit; transition: border-color 0.3s ease; word-wrap: break-word; white-space: pre-wrap; background: #fff; }
-  .message-input:focus { border-color: #409eff; }
-  .message-input:empty:before { content: attr(data-placeholder); color: #c0c4cc; pointer-events: none; }
+/* Chat View Input Area */
+.chat-input-container {
+  padding: 24px 24px 32px;
+  background: transparent;
+  border-top: 1px solid rgba(229, 231, 235, 0.6);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.input-wrapper {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.message-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 32px;
+  max-height: 160px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  font-size: 16px;
+  line-height: 1.6;
+  font-family: inherit;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  background: transparent;
+  color: #111827;
+  overflow-y: auto;
+}
+
+.message-input:focus {
+  outline: none;
+}
+
+.message-input:empty:before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+}
   
   /* Responsive */
   @media (max-width: 768px) {
@@ -1004,12 +905,20 @@
       min-height: 0;
     }
     .message-item { max-width: 90%; }
-    .chat-input-container { 
-      padding: 16px; 
-      width: 100%; 
-      height: auto; 
-      min-height: 80px;
-      flex-shrink: 0; /* 防止输入区域被压缩 */
+    .chat-input-container {
+      padding: 20px 16px 28px;
+    }
+    .input-wrapper {
+      max-width: 100%;
+    }
+    .chat-input-bar {
+      gap: 12px;
+      padding: 10px 14px;
+    }
+    .pill-icon-btn {
+      width: 36px;
+      height: 36px;
+      font-size: 18px;
     }
   }
   </style>
